@@ -4,7 +4,8 @@ import { authenticateWithRole } from "@/lib/api-auth";
 import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ACCESS_ROLES, PROMOTIONS_ADMIN_ONLY_ROLES } from "@/lib/promotions-auth";
 
-const STUDIO7_ROLES = ["admin", "marketing", "store_manager"];
+const STUDIO7_LIST_ROLES = ["admin", "marketing", "store_manager"];
+const STUDIO7_ASSIGNABLE_ROLES = ["admin", "marketing"];
 
 export async function GET(request) {
   const { error } = await authenticateWithRole(request, PROMOTIONS_ACCESS_ROLES);
@@ -13,7 +14,7 @@ export async function GET(request) {
   const { data, error: listErr } = await getServiceRoleSupabase()
     .from("users")
     .select("id, email, name, role, phone, is_active, created_at, last_login")
-    .in("role", STUDIO7_ROLES)
+    .in("role", STUDIO7_LIST_ROLES)
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
@@ -40,7 +41,7 @@ export async function POST(request) {
   if (!name || !email || !password) {
     return NextResponse.json({ error: "Name, email, and password are required" }, { status: 400 });
   }
-  if (!STUDIO7_ROLES.includes(role)) {
+  if (!STUDIO7_ASSIGNABLE_ROLES.includes(role)) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
 

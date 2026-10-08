@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AuthShell } from "@/components/auth/auth-shell";
+import { SignUpScreen } from "@/components/auth/sign-up-screen";
 import { persistClientAuthToken } from "@/lib/client-auth-storage";
 import { useJWTAuth } from "@/hooks/use-jwt-auth";
 import { toast } from "sonner";
@@ -17,6 +13,7 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const submit = async (e) => {
@@ -43,50 +40,17 @@ export default function SignUpPage() {
   };
 
   return (
-    <AuthShell
-      title="Create account"
-      subtitle="Sign up with your email and password. Your team lead can also add you from the admin Users page."
-      footer={
-        <p className="mt-6 text-center text-xs text-zinc-500">
-          Already have an account?{" "}
-          <Link href="/auth/signin" className="font-medium text-zinc-900 underline-offset-2 hover:underline">
-            Sign in
-          </Link>
-        </p>
-      }
-    >
-      <form onSubmit={submit} className="space-y-4">
-        <div className="space-y-1">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="h-10" />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="h-10"
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            className="h-10"
-          />
-        </div>
-        <Button type="submit" className="h-11 w-full" disabled={loading}>
-          {loading ? "Creating…" : "Create account"}
-        </Button>
-      </form>
-    </AuthShell>
+    <SignUpScreen
+      name={name}
+      email={email}
+      password={password}
+      showPassword={showPassword}
+      loading={loading}
+      onNameChange={(e) => setName(e.target.value)}
+      onEmailChange={(e) => setEmail(e.target.value)}
+      onPasswordChange={(e) => setPassword(e.target.value)}
+      onToggleShowPassword={() => setShowPassword((v) => !v)}
+      onSubmit={submit}
+    />
   );
 }

@@ -117,7 +117,7 @@ export function Studio7UsersPage() {
           <CardHeader>
             <CardTitle className="text-zinc-900">Team directory</CardTitle>
             <CardDescription className="text-zinc-600">
-              Roles with access to promotions: admin, marketing, store_manager
+              Roles with access to promotions: admin, marketing
             </CardDescription>
           </CardHeader>
           <CardContent className="text-zinc-900">
@@ -323,7 +323,6 @@ function CreateUserDialog({ onCreated }) {
               <SelectContent>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="marketing">Marketing</SelectItem>
-                <SelectItem value="store_manager">Store manager</SelectItem>
               </SelectContent>
             </Select>
           </div>

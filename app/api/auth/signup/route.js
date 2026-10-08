@@ -5,7 +5,7 @@ import { applyAuthCookie, authenticateStaffCredentials } from "@/lib/staff-login
 import { authenticateWithRole } from "@/lib/api-auth";
 import { hasPromotionsAccess, PROMOTIONS_ADMIN_ONLY_ROLES } from "@/lib/promotions-auth";
 
-const STUDIO7_ROLES = new Set(["admin", "marketing", "store_manager"]);
+const STUDIO7_ROLES = new Set(["admin", "marketing"]);
 
 /** True when there are no admin/marketing users yet (empty Studio 7 team). */
 async function canBootstrapFirstAdmin() {

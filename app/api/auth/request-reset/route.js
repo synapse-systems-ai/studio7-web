@@ -85,7 +85,7 @@ export async function POST(request) {
       resetUrl: isDev ? resetUrl : undefined,
       ...(isDev && !canAccessAdmin
         ? {
-            devHint: `Account role is "${user.role}" - Studio 7 admin requires admin, marketing, or store_manager.`,
+            devHint: `Account role is "${user.role}" - Studio 7 admin requires admin or marketing.`,
           }
         : {}),
     });
