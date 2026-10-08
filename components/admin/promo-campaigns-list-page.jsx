@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -262,12 +263,16 @@ export function PromoCampaignsListPage() {
             <CreateCampaignDialog
               onCreated={(c) => c && router.push(`${brand.adminBasePath}/${c.id}`)}
             />
-            <Button variant="outline" asChild>
-              <Link href="/admin">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Link>
-            </Button>
+            <Link
+              href="/admin"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "default" }),
+                "inline-flex h-9 shrink-0 items-center whitespace-nowrap px-4",
+              )}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+              Back
+            </Link>
           </div>
         </div>
 

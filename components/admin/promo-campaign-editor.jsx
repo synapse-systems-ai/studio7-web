@@ -7,7 +7,8 @@ import { getPromoCampaignPreviewImage } from '@/lib/promo-brand-image'
 import { formatPromoValidDuration } from '@/lib/promo-signup'
 import { AdminLayout } from '@/components/admin/admin-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { DebouncedInput } from '@/components/ui/debounced-input'
 import { Label } from '@/components/ui/label'
@@ -729,12 +730,16 @@ export default function PromotionCampaignPage({ params }) {
             <h1 className="text-3xl font-bold tracking-tight">{campaign?.name || 'Campaign'}</h1>
             <p className="text-muted-foreground">Edit the landing page and view analytics.</p>
           </div>
-          <Button variant="outline" asChild>
-            <Link href={brand.adminBasePath}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to {brand.listTitle}
-            </Link>
-          </Button>
+          <Link
+            href={brand.adminBasePath}
+            className={cn(
+              buttonVariants({ variant: 'outline', size: 'default' }),
+              'inline-flex h-9 shrink-0 items-center whitespace-nowrap px-4',
+            )}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+            Back to {brand.listTitle}
+          </Link>
         </div>
 
         {loading ? (
