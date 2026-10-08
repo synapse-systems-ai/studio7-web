@@ -41,11 +41,20 @@ import { ArrowRight, Images, Plus, Search, Tag, Trash2, Users } from "lucide-rea
 import { toast } from "sonner";
 import { usePromoBrand } from "@/lib/promo-brand-context";
 import { PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
+import {
+  PROMO_CAMPAIGN_FORMAT_GUEST_LIST,
+  PROMO_CAMPAIGN_FORMAT_INSTAGRAM,
+  PROMO_CAMPAIGN_FORMAT_OPTIONS,
+  formatCampaignFormatLabel,
+} from "@/lib/promo-campaign-format";
 
 function CreateCampaignDialog({ onCreated }) {
   const brand = usePromoBrand();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [campaignFormat, setCampaignFormat] = useState(PROMO_CAMPAIGN_FORMAT_GUEST_LIST);
+  const [discountPercent, setDiscountPercent] = useState(10);
+  const [instagramUsername, setInstagramUsername] = useState("studio7.rsa");
   const [saving, setSaving] = useState(false);
 
   const create = async () => {
@@ -56,13 +65,23 @@ function CreateCampaignDialog({ onCreated }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name: name.trim(), brand: brand.id }),
+        body: JSON.stringify({
+          name: name.trim(),
+          brand: brand.id,
+          campaign_format: campaignFormat,
+          discount_percent: discountPercent,
+          instagram_username:
+            campaignFormat === PROMO_CAMPAIGN_FORMAT_INSTAGRAM ? instagramUsername.trim() : undefined,
+        }),
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Failed to create campaign");
       toast.success("Campaign created");
       setOpen(false);
       setName("");
+      setCampaignFormat(PROMO_CAMPAIGN_FORMAT_GUEST_LIST);
+      setDiscountPercent(10);
+      setInstagramUsername("studio7.rsa");
       onCreated?.(j.campaign);
     } catch (e) {
       toast.error("Could not create campaign", { description: e.message });
@@ -83,18 +102,60 @@ function CreateCampaignDialog({ onCreated }) {
         <DialogHeader>
           <DialogTitle>New {brand.label} campaign</DialogTitle>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="campaign-name">Campaign name</Label>
-          <Input
-            id="campaign-name"
-            placeholder="e.g. Summer launch party"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus
-          />
-          <p className="text-xs text-muted-foreground">
-            You can edit the headline, description, image and settings after creating it.
-          </p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="campaign-name">Campaign name</Label>
+            <Input
+              id="campaign-name"
+              placeholder="e.g. Summer launch party"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Campaign format</Label>
+            <Select
+              value={campaignFormat}
+              onValueChange={(v) => setCampaignFormat(v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PROMO_CAMPAIGN_FORMAT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {PROMO_CAMPAIGN_FORMAT_OPTIONS.find((o) => o.value === campaignFormat)?.description}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="campaign-discount">Discount %</Label>
+            <Input
+              id="campaign-discount"
+              type="number"
+              min={1}
+              max={100}
+              value={discountPercent}
+              onChange={(e) => setDiscountPercent(Number(e.target.value) || 10)}
+            />
+          </div>
+          {campaignFormat === PROMO_CAMPAIGN_FORMAT_INSTAGRAM ? (
+            <div className="space-y-2">
+              <Label htmlFor="campaign-ig">Instagram account to follow</Label>
+              <Input
+                id="campaign-ig"
+                value={instagramUsername}
+                onChange={(e) => setInstagramUsername(e.target.value)}
+                placeholder="studio7.rsa"
+              />
+            </div>
+          ) : null}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
@@ -191,7 +252,12 @@ function CampaignCard({ campaign, onDeleted }) {
               </Badge>
             )}
           </CardTitle>
-          <CardDescription>{campaign.headline}</CardDescription>
+          <CardDescription className="space-y-1">
+            <span className="block">{campaign.headline}</span>
+            <Badge variant="outline" className="font-normal">
+              {formatCampaignFormatLabel(campaign.campaign_format)}
+            </Badge>
+          </CardDescription>
         </Link>
       </CardHeader>
       <CardContent>

@@ -3,6 +3,11 @@ import { authenticateWithRole } from "@/lib/api-auth";
 import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ACCESS_ROLES } from "@/lib/promotions-auth";
 import { PROMO_BRAND_420, PROMO_BRAND_STUDIO7, getPromoBrand } from "@/lib/promo-brands";
+import {
+  PROMO_CAMPAIGN_FORMAT_GUEST_LIST,
+  PROMO_CAMPAIGN_FORMAT_INSTAGRAM,
+} from "@/lib/promo-campaign-format";
+import { normalizeInstagramHandle } from "@/lib/promo-instagram";
 
 function parseBrand(value) {
   return value === PROMO_BRAND_STUDIO7 ? PROMO_BRAND_STUDIO7 : PROMO_BRAND_420;
@@ -72,15 +77,34 @@ export async function POST(request) {
     slug = `${baseSlug}-${i + 1}`;
   }
 
+  const campaignFormat =
+    body.campaign_format === PROMO_CAMPAIGN_FORMAT_INSTAGRAM
+      ? PROMO_CAMPAIGN_FORMAT_INSTAGRAM
+      : PROMO_CAMPAIGN_FORMAT_GUEST_LIST;
+  const instagramUsername =
+    campaignFormat === PROMO_CAMPAIGN_FORMAT_INSTAGRAM
+      ? normalizeInstagramHandle(body.instagram_username || "studio7.rsa") || "studio7.rsa"
+      : null;
+
+  const defaultHeadline =
+    campaignFormat === PROMO_CAMPAIGN_FORMAT_INSTAGRAM
+      ? "Get your Instagram discount"
+      : brandConfig.defaultHeadline;
+  const defaultDescription =
+    campaignFormat === PROMO_CAMPAIGN_FORMAT_INSTAGRAM
+      ? "Follow us on Instagram to unlock your ticket discount code."
+      : brandConfig.defaultDescription;
+
   const { data: campaign, error: insertErr } = await supabase
     .from("promo_campaigns")
     .insert({
       slug,
       name,
       brand,
-      headline: body.headline || brandConfig.defaultHeadline,
-      description: body.description ?? brandConfig.defaultDescription,
-      // No image_url - every campaign uses the fixed brand photo (lib/promo-brand-image.js).
+      campaign_format: campaignFormat,
+      instagram_username: instagramUsername,
+      headline: body.headline || defaultHeadline,
+      description: body.description ?? defaultDescription,
       discount_percent: body.discount_percent || 10,
       terms_text: body.terms_text || null,
       is_active: true,

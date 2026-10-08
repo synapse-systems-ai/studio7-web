@@ -8,9 +8,15 @@ import { getPromoPersonalUrl } from "@/lib/promo-public-url";
 import { promoExpiresAtFromSignup, resolvePromoCodeValidHours } from "@/lib/promo-signup";
 import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
 import { campaignIsLive } from "@/lib/promo-campaign-live";
+import { isInstagramPromoCampaign } from "@/lib/promo-campaign-format";
+import {
+  isValidInstagramHandle,
+  normalizeInstagramHandle,
+  syntheticEmailForInstagramSignup,
+} from "@/lib/promo-instagram";
 
 const PUBLIC_CAMPAIGN_SELECT =
-  "id, slug, name, headline, description, image_url, discount_percent, terms_text, is_active, starts_at, ends_at, code_valid_hours, brand";
+  "id, slug, name, headline, description, image_url, discount_percent, terms_text, is_active, starts_at, ends_at, code_valid_hours, brand, campaign_format, instagram_username";
 
 async function findExistingCustomer(
   supabase: ReturnType<typeof getServiceRoleSupabase>,
@@ -51,6 +57,68 @@ async function findExistingSignupForCampaign(
     .limit(1)
     .maybeSingle();
   return data || null;
+}
+
+async function findExistingInstagramSignup(
+  supabase: ReturnType<typeof getServiceRoleSupabase>,
+  { campaignId, handle }: { campaignId: string; handle: string },
+) {
+  const { data } = await supabase
+    .from("promo_signups")
+    .select("id")
+    .eq("campaign_id", campaignId)
+    .is("cancelled_at", null)
+    .ilike("instagram_handle", handle)
+    .limit(1)
+    .maybeSingle();
+  return data || null;
+}
+
+type CampaignRow = {
+  id: string;
+  headline?: string | null;
+  discount_percent: number;
+  terms_text?: string | null;
+  code_valid_hours?: number | null;
+  campaign_format?: string | null;
+};
+
+async function insertPromoSignupWithCode(
+  supabase: ReturnType<typeof getServiceRoleSupabase>,
+  row: Record<string, unknown>,
+) {
+  let discountCode = generatePromoDiscountCode();
+  let signup: Record<string, unknown> | null = null;
+
+  for (let attempt = 0; attempt < 5 && !signup; attempt++) {
+    const { data, error: insertErr } = await supabase
+      .from("promo_signups")
+      .insert({ ...row, discount_code: discountCode })
+      .select()
+      .single();
+
+    if (!insertErr) {
+      signup = data;
+      break;
+    }
+    if (insertErr.code === "23505") {
+      const msg = String(insertErr.message || "");
+      if (
+        msg.includes("idx_promo_signups_unique_email_per_campaign") ||
+        msg.includes("idx_promo_signups_unique_instagram_per_campaign")
+      ) {
+        return { error: "duplicate" as const };
+      }
+      discountCode = generatePromoDiscountCode();
+      continue;
+    }
+    return { error: insertErr.message };
+  }
+
+  if (!signup) {
+    return { error: "Could not complete signup, please try again" };
+  }
+  return { signup, discountCode };
 }
 
 const brand = getPromoBrand();
@@ -99,6 +167,80 @@ export async function promoSlugPOST(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  const supabase = getServiceRoleSupabase();
+
+  const { data: campaign, error: campErr } = await supabase
+    .from("promo_campaigns")
+    .select(PUBLIC_CAMPAIGN_SELECT)
+    .eq("slug", slug)
+    .eq("brand", brandId)
+    .maybeSingle();
+
+  if (campErr) return NextResponse.json({ error: campErr.message }, { status: 500 });
+  if (!campaign || !campaignIsLive(campaign)) {
+    return NextResponse.json({ error: "This promotion is not available." }, { status: 404 });
+  }
+
+  const validHours = resolvePromoCodeValidHours(campaign);
+  const expiresAt = promoExpiresAtFromSignup(new Date(), validHours);
+  const accessToken = randomUUID();
+  const campaignRow = campaign as CampaignRow;
+
+  if (isInstagramPromoCampaign(campaign)) {
+    if (body.follow_confirmed !== true) {
+      return NextResponse.json({ error: "Please follow the account and confirm before submitting." }, { status: 400 });
+    }
+    const handle = normalizeInstagramHandle(String(body.instagram_handle || body.instagram || ""));
+    if (!isValidInstagramHandle(handle)) {
+      return NextResponse.json({ error: "Please enter a valid Instagram handle." }, { status: 400 });
+    }
+
+    const alreadyIg = await findExistingInstagramSignup(supabase, { campaignId: campaign.id, handle });
+    if (alreadyIg) {
+      return NextResponse.json(
+        { error: "This Instagram handle has already claimed a code for this campaign." },
+        { status: 409 },
+      );
+    }
+
+    const email = syntheticEmailForInstagramSignup(campaign.id, handle);
+    const inserted = await insertPromoSignupWithCode(supabase, {
+      campaign_id: campaign.id,
+      customer_id: null,
+      name: `@${handle}`,
+      email,
+      phone: "—",
+      instagram_handle: handle,
+      contact_method: "instagram",
+      expires_at: expiresAt,
+      access_token: accessToken,
+    });
+
+    if ("error" in inserted) {
+      if (inserted.error === "duplicate") {
+        return NextResponse.json(
+          { error: "This Instagram handle has already claimed a code for this campaign." },
+          { status: 409 },
+        );
+      }
+      return NextResponse.json({ error: inserted.error }, { status: 500 });
+    }
+
+    const { signup, discountCode } = inserted;
+    const personalUrl = getPromoPersonalUrl(accessToken);
+
+    return NextResponse.json({
+      success: true,
+      message: `Thanks @${handle}! Here's your ${campaignRow.discount_percent}% ticket discount — save your code below.`,
+      discount_code: discountCode,
+      expires_at: expiresAt,
+      valid_hours: validHours,
+      personal_url: personalUrl,
+      email_sent: false,
+      stores: [],
+    });
+  }
+
   const firstName = String(body.first_name || body.firstName || "").trim();
   const lastName = String(body.last_name || body.lastName || body.surname || "").trim();
   const name = [firstName, lastName].filter(Boolean).join(" ");
@@ -112,20 +254,6 @@ export async function promoSlugPOST(
   }
   if (!phone || !looksLikePhone(phone)) {
     return NextResponse.json({ error: "Please enter a valid phone number" }, { status: 400 });
-  }
-
-  const supabase = getServiceRoleSupabase();
-
-  const { data: campaign, error: campErr } = await supabase
-    .from("promo_campaigns")
-    .select(PUBLIC_CAMPAIGN_SELECT)
-    .eq("slug", slug)
-    .eq("brand", brandId)
-    .maybeSingle();
-
-  if (campErr) return NextResponse.json({ error: campErr.message }, { status: 500 });
-  if (!campaign || !campaignIsLive(campaign)) {
-    return NextResponse.json({ error: "This promotion is not available." }, { status: 404 });
   }
 
   const alreadyClaimed = await findExistingSignupForCampaign(supabase, {
@@ -165,50 +293,28 @@ export async function promoSlugPOST(
     console.error("promo signup: customer match/create failed (non-fatal):", e);
   }
 
-  let discountCode = generatePromoDiscountCode();
-  const validHours = resolvePromoCodeValidHours(campaign);
-  const expiresAt = promoExpiresAtFromSignup(new Date(), validHours);
-  const accessToken = randomUUID();
-  let signup: Record<string, unknown> | null = null;
+  const inserted = await insertPromoSignupWithCode(supabase, {
+    campaign_id: campaign.id,
+    customer_id: customerId,
+    name,
+    email,
+    phone,
+    contact_method: "email",
+    expires_at: expiresAt,
+    access_token: accessToken,
+  });
 
-  for (let attempt = 0; attempt < 5 && !signup; attempt++) {
-    const { data, error: insertErr } = await supabase
-      .from("promo_signups")
-      .insert({
-        campaign_id: campaign.id,
-        customer_id: customerId,
-        name,
-        email,
-        phone,
-        contact_method: "both",
-        discount_code: discountCode,
-        expires_at: expiresAt,
-        access_token: accessToken,
-      })
-      .select()
-      .single();
-
-    if (!insertErr) {
-      signup = data;
-      break;
+  if ("error" in inserted) {
+    if (inserted.error === "duplicate") {
+      return NextResponse.json(
+        { error: "This email or phone number has already signed up for this campaign." },
+        { status: 409 },
+      );
     }
-    if (insertErr.code === "23505") {
-      if (String(insertErr.message || "").includes("idx_promo_signups_unique_email_per_campaign")) {
-        return NextResponse.json(
-          { error: "This email or phone number has already signed up for this campaign." },
-          { status: 409 },
-        );
-      }
-      discountCode = generatePromoDiscountCode();
-      continue;
-    }
-    return NextResponse.json({ error: insertErr.message }, { status: 500 });
+    return NextResponse.json({ error: inserted.error }, { status: 500 });
   }
 
-  if (!signup) {
-    return NextResponse.json({ error: "Could not complete signup, please try again" }, { status: 500 });
-  }
-
+  const { signup, discountCode } = inserted;
   const personalUrl = getPromoPersonalUrl(accessToken);
   const campaignInfo = {
     headline: campaign.headline,

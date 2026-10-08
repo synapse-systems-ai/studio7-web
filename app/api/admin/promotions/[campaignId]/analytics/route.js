@@ -20,7 +20,7 @@ export async function GET(request, { params }) {
 
   const { data: signupsRaw, error: signupsErr } = await supabase
     .from("promo_signups")
-    .select("id, name, email, phone, contact_method, discount_code, redeemed_at, cancelled_at, expires_at, created_at")
+    .select("id, name, email, phone, instagram_handle, contact_method, discount_code, redeemed_at, cancelled_at, expires_at, created_at")
     .eq("campaign_id", campaignId)
     .gte("created_at", range.from)
     .lte("created_at", range.to)
@@ -35,7 +35,7 @@ export async function GET(request, { params }) {
 
   if (search) {
     signups = signups.filter((s) => {
-      const hay = [s.name, s.email, s.phone, s.discount_code, s.status]
+      const hay = [s.name, s.email, s.phone, s.instagram_handle, s.discount_code, s.status]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();

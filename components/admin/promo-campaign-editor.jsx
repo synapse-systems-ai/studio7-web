@@ -44,6 +44,10 @@ import { useAuth } from '@/hooks/use-jwt-auth'
 import { getPromoLandingUrl } from '@/lib/promo-public-url'
 import { usePromoBrand } from '@/lib/promo-brand-context'
 import { formatPromoStatusLabel } from '@/lib/promo-signup'
+import {
+  formatCampaignFormatLabel,
+  isInstagramPromoCampaign,
+} from '@/lib/promo-campaign-format'
 
 const CODE_VALID_PRESETS = [
   { label: '24 hours', hours: 24 },
@@ -95,6 +99,7 @@ function ContentTab({ campaign, onSaved }) {
     code_valid_preset: presetMatch ? String(presetMatch.hours) : 'custom',
     starts_at: toDatetimeLocal(campaign.starts_at),
     ends_at: toDatetimeLocal(campaign.ends_at),
+    instagram_username: campaign.instagram_username || 'studio7.rsa',
   })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -139,6 +144,7 @@ function ContentTab({ campaign, onSaved }) {
         code_valid_hours: Number(form.code_valid_hours) || 24,
         starts_at: form.starts_at || null,
         ends_at: form.ends_at || null,
+        instagram_username: form.instagram_username,
       }
       const r = await fetch(`${adminApi}/${campaign.id}`, {
         method: 'PATCH',
@@ -171,9 +177,25 @@ function ContentTab({ campaign, onSaved }) {
       <Card className="lg:col-span-2">
         <CardHeader>
           <CardTitle className="text-lg">Landing page content</CardTitle>
-          <CardDescription>Editable text and image for this campaign's public page.</CardDescription>
+          <CardDescription className="flex flex-wrap items-center gap-2">
+            <span>Editable text and image for this campaign&apos;s public page.</span>
+            <Badge variant="outline">{formatCampaignFormatLabel(campaign.campaign_format)}</Badge>
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {isInstagramPromoCampaign(campaign) ? (
+            <div className="space-y-2 rounded-lg border border-dashed p-4">
+              <Label>Instagram account to follow</Label>
+              <Input
+                value={form.instagram_username}
+                onChange={(e) => setForm((f) => ({ ...f, instagram_username: e.target.value }))}
+                placeholder="studio7.rsa"
+              />
+              <p className="text-xs text-muted-foreground">
+                Guests must follow this account before they can unlock their {form.discount_percent}% code.
+              </p>
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Label>Campaign name (internal)</Label>
             <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
@@ -587,7 +609,7 @@ function AnalyticsTab({ campaignId }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead>Email / Instagram</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Code</TableHead>
                     <TableHead>Status</TableHead>
@@ -599,7 +621,9 @@ function AnalyticsTab({ campaignId }) {
                   {signups.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">{s.name}</TableCell>
-                      <TableCell>{s.email || '-'}</TableCell>
+                      <TableCell>
+                        {s.instagram_handle ? `@${s.instagram_handle}` : s.email || '-'}
+                      </TableCell>
                       <TableCell>{s.phone || '-'}</TableCell>
                       <TableCell className="font-mono text-xs">{s.discount_code}</TableCell>
                       <TableCell>
@@ -614,16 +638,18 @@ function AnalyticsTab({ campaignId }) {
                         <TableCell>
                           {s.status === 'ongoing' ? (
                             <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-8"
-                                disabled={resendingId === s.id}
-                                onClick={() => resendSignup(s)}
-                              >
-                                <Send className="mr-1.5 h-3.5 w-3.5" />
-                                {resendingId === s.id ? 'Resending…' : 'Resend'}
-                              </Button>
+                              {s.contact_method !== 'instagram' ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8"
+                                  disabled={resendingId === s.id}
+                                  onClick={() => resendSignup(s)}
+                                >
+                                  <Send className="mr-1.5 h-3.5 w-3.5" />
+                                  {resendingId === s.id ? 'Resending…' : 'Resend'}
+                                </Button>
+                              ) : null}
                               <Button
                                 size="sm"
                                 variant="outline"

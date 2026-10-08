@@ -15,6 +15,7 @@ const EDITABLE_FIELDS = [
   "starts_at",
   "ends_at",
   "code_valid_hours",
+  "instagram_username",
 ];
 
 /** GET /api/admin/promotions/[campaignId] */
@@ -99,6 +100,14 @@ export async function PATCH(request, { params }) {
 
   if (patch.starts_at && patch.ends_at && new Date(patch.starts_at) > new Date(patch.ends_at)) {
     return NextResponse.json({ error: "Campaign end must be after start" }, { status: 400 });
+  }
+
+  if (patch.instagram_username !== undefined) {
+    const handle = String(patch.instagram_username || "")
+      .trim()
+      .replace(/^@+/, "")
+      .toLowerCase();
+    patch.instagram_username = handle || "studio7.rsa";
   }
 
   patch.updated_at = new Date().toISOString();

@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PromoHeroBackground } from "@/components/promo/promo-hero-background";
 import { PromoSuccessCard } from "@/components/promo/promo-success-card";
+import { PromoInstagramSignupForm } from "@/components/promo/promo-instagram-signup-form";
 import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
+import { isInstagramPromoCampaign } from "@/lib/promo-campaign-format";
 import { cn } from "@/lib/utils";
 
 const promoCardClass =
@@ -28,6 +30,8 @@ type PublicCampaign = {
   terms_text?: string | null;
   discount_percent?: number;
   image_url?: string | null;
+  campaign_format?: string | null;
+  instagram_username?: string | null;
 };
 
 function PromoShell({ campaign, children }: { campaign: PublicCampaign | null; children: React.ReactNode }) {
@@ -137,6 +141,29 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
   const headline = useMemo(() => campaign?.headline, [campaign]);
   const submitLabel = campaign ? brand.submitLabel(campaign) : "Submit";
   const successStores = brand.showStoresOnSuccess ? success?.stores : [];
+  const isInstagram = campaign ? isInstagramPromoCampaign(campaign) : false;
+
+  const submitInstagram = async (instagramHandle: string) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(`${apiBase}/${slug}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instagram_handle: instagramHandle,
+          follow_confirmed: true,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Submission failed");
+      setSuccess(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Submission failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -172,7 +199,9 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
               <p className="text-lg font-bold tracking-tight text-zinc-900 sm:text-xl">{brand.label}</p>
             )}
             {brand.id === PROMO_BRAND_STUDIO7 ? (
-              <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.35em] text-zinc-500">Guest list</p>
+              <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.35em] text-zinc-500">
+                {isInstagram ? "Instagram promo" : "Guest list"}
+              </p>
             ) : null}
             <h1
               className={cn(
@@ -195,6 +224,15 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
                 expiresAt={success.expires_at}
                 validHours={success.valid_hours}
                 stores={successStores}
+              />
+            ) : isInstagram ? (
+              <PromoInstagramSignupForm
+                discountPercent={campaign?.discount_percent ?? 10}
+                instagramUsername={campaign?.instagram_username || "studio7.rsa"}
+                termsText={campaign?.terms_text}
+                submitting={submitting}
+                error={error}
+                onSubmit={submitInstagram}
               />
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-4 sm:p-5">
