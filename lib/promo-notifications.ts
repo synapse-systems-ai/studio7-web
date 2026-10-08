@@ -1,27 +1,13 @@
 import { sendPromoConfirmationEmail } from "@/lib/promo-email";
-import { formatPromoValidDuration } from "@/lib/promo-signup";
-import { sendRawSMS } from "@/lib/sms";
-
-function buildSignupSmsBody(campaignInfo: {
-  discount_percent: number;
-  discount_code: string;
-  valid_hours?: number;
-  personal_url: string;
-}) {
-  const { discount_percent, discount_code, valid_hours, personal_url } = campaignInfo;
-  const validLabel = formatPromoValidDuration(valid_hours ?? 24);
-  return `Studio 7: ${discount_percent}% off - code ${discount_code}. Valid ${validLabel}. Guest pass & timer: ${personal_url}`;
-}
 
 export async function sendPromoSignupNotifications({
   name,
   email,
-  phone,
   campaignInfo,
 }: {
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
   campaignInfo: {
     headline?: string | null;
     discount_percent: number;
@@ -32,41 +18,21 @@ export async function sendPromoSignupNotifications({
     personal_url: string;
   };
 }) {
-  const smsBody = buildSignupSmsBody(campaignInfo);
+  const emailResult = await sendPromoConfirmationEmail(email, name, campaignInfo);
 
-  const [emailResult, smsResult] = await Promise.allSettled([
-    sendPromoConfirmationEmail(email, name, campaignInfo),
-    sendRawSMS(phone, smsBody),
-  ]);
+  const emailOk = emailResult.success === true;
 
-  const emailOk =
-    emailResult.status === "fulfilled" && emailResult.value?.success === true;
-  const smsOk = smsResult.status === "fulfilled" && smsResult.value?.success === true;
-
-  if (emailResult.status === "rejected") {
-    console.error("[promo signup] email failed:", emailResult.reason);
-  }
-  if (smsResult.status === "rejected") {
-    console.error("[promo signup] SMS failed:", smsResult.reason);
-  } else if (!smsOk && smsResult.status === "fulfilled") {
-    console.error("[promo signup] SMS failed:", smsResult.value?.error);
+  if (!emailOk) {
+    console.error("[promo signup] email failed:", "error" in emailResult ? emailResult.error : "skipped");
   }
 
   const emailError =
-    emailResult.status === "rejected"
-      ? String(emailResult.reason)
-      : emailResult.status === "fulfilled" && !emailOk
-        ? ("error" in emailResult.value && emailResult.value.error) ||
-          ("skipped" in emailResult.value && emailResult.value.skipped
-            ? "Email not configured (RESEND_API_KEY)"
-            : "Email send failed")
-        : undefined;
-  const smsError =
-    smsResult.status === "rejected"
-      ? String(smsResult.reason)
-      : smsResult.status === "fulfilled" && !smsOk
-        ? smsResult.value?.error || "SMS send failed"
-        : undefined;
+    !emailOk
+      ? ("error" in emailResult && emailResult.error) ||
+        ("skipped" in emailResult && emailResult.skipped
+          ? "Email not configured (RESEND_API_KEY)"
+          : "Email send failed")
+      : undefined;
 
-  return { emailOk, smsOk, emailError, smsError };
+  return { emailOk, emailError };
 }

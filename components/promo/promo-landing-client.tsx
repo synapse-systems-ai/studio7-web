@@ -55,7 +55,6 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
     valid_hours?: number;
     personal_url?: string;
     email_sent?: boolean;
-    sms_sent?: boolean;
     stores?: unknown[];
   } | null>(null);
 

@@ -6,7 +6,7 @@ import { getPromoSignupStatus, resolvePromoCodeValidHours } from "@/lib/promo-si
 import { getPromoPersonalUrl } from "@/lib/promo-public-url";
 import { sendPromoSignupNotifications } from "@/lib/promo-notifications";
 
-/** POST /api/admin/promotions/[campaignId]/signups/[signupId]/resend - resend the existing code by email + SMS */
+/** POST /api/admin/promotions/[campaignId]/signups/[signupId]/resend - resend the existing code by email */
 export async function POST(request, { params }) {
   const { error } = await authenticateWithRole(request, PROMOTIONS_ADMIN_ONLY_ROLES);
   if (error) return error;
@@ -47,16 +47,15 @@ export async function POST(request, { params }) {
     personal_url: getPromoPersonalUrl(signup.access_token),
   };
 
-  const { emailOk, smsOk } = await sendPromoSignupNotifications({
+  const { emailOk } = await sendPromoSignupNotifications({
     name: signup.name,
     email: signup.email,
-    phone: signup.phone,
     campaignInfo,
   });
 
-  if (!emailOk && !smsOk) {
-    return NextResponse.json({ error: "Failed to resend both email and SMS" }, { status: 502 });
+  if (!emailOk) {
+    return NextResponse.json({ error: "Failed to resend email" }, { status: 502 });
   }
 
-  return NextResponse.json({ success: true, emailOk, smsOk });
+  return NextResponse.json({ success: true, emailOk });
 }

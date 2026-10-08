@@ -220,40 +220,22 @@ export async function promoSlugPOST(
     personal_url: personalUrl,
   };
 
-  const { emailOk, smsOk, emailError, smsError } = await sendPromoSignupNotifications({
+  const { emailOk, emailError } = await sendPromoSignupNotifications({
     name,
     email,
-    phone,
     campaignInfo,
   });
-  if (!emailOk && !smsOk) {
-    console.error("[promo signup] confirmation not delivered", {
+  if (!emailOk) {
+    console.error("[promo signup] confirmation email not delivered", {
       email,
-      phone,
       signupId: signup.id,
       emailError,
-      smsError,
-    });
-  } else if (!emailOk || !smsOk) {
-    console.warn("[promo signup] partial delivery", {
-      emailOk,
-      smsOk,
-      email,
-      phone,
-      signupId: signup.id,
-      emailError,
-      smsError,
     });
   }
 
-  const deliveryNote =
-    emailOk && smsOk
-      ? brand.signupSuccessDefault
-      : emailOk && !smsOk
-        ? "We emailed your code — check spam and Promotions if you don't see it. We couldn't text you; save your code below."
-        : !emailOk && smsOk
-          ? "We texted your code. Email didn't go through — save your code below."
-          : "Save your code below — we couldn't send email or text.";
+  const deliveryNote = emailOk
+    ? brand.signupSuccessDefault
+    : "Your code is below — we couldn't send email. Save it or ask the team to resend from admin.";
 
   return NextResponse.json({
     success: true,
@@ -263,7 +245,6 @@ export async function promoSlugPOST(
     valid_hours: validHours,
     personal_url: personalUrl,
     email_sent: emailOk,
-    sms_sent: smsOk,
     stores: [],
   });
 }

@@ -15,9 +15,9 @@ const STUDIO7 = {
     "QR campaigns for events and parties - capture guest signups and track them in the background.",
   defaultHeadline: "Join the Studio 7 guest list",
   defaultDescription: "Sign up for our next event or party.",
-  signupHint: "We'll confirm by email and SMS - you're on the list.",
+  signupHint: "We'll email your code and guest pass link shortly.",
   submitLabel: (_campaign?: { discount_percent?: number | null }) => "Join the guest list",
-  signupSuccessDefault: "You're on the list - check your email and phone for details.",
+  signupSuccessDefault: "You're on the list — check your inbox (and spam) for your code and guest pass.",
   showStoresOnSuccess: false,
   use420Logo: false,
 } as const;

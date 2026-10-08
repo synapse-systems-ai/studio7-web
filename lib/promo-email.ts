@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { formatPromoValidDuration } from "@/lib/promo-signup";
 import { getPromoEmailCoverImageUrl, getPromoEmailLogoUrl } from "@/lib/promo-public-url";
+import { STUDIO7_INSTAGRAM_URL } from "@/lib/studio7-site-assets";
 
 let resendSingleton: Resend | null = null;
 
@@ -36,7 +37,7 @@ export type PromoCampaignEmailInfo = {
   personal_url: string;
 };
 
-/** Same layout as 420 Doctor promo emails; Studio 7 monochrome branding. */
+/** Studio 7 guest-list confirmation — email only, monochrome, client-safe HTML tables. */
 export async function sendPromoConfirmationEmail(
   toEmail: string,
   name: string | null | undefined,
@@ -55,47 +56,75 @@ export async function sendPromoConfirmationEmail(
   const { headline, discount_percent, discount_code, terms_text, personal_url } = campaignInfo;
   const validHours = campaignInfo.valid_hours ?? 24;
   const validLabel = formatPromoValidDuration(validHours);
-  const subject = `Your ${discount_percent}% off code - Studio 7`;
+  const subject = `Your Studio 7 guest pass · ${discount_percent}% off`;
   const safeCode = escapeHtml(discount_code);
   const safeUrl = escapeHtml(personal_url);
+  const safeHeadline = escapeHtml(headline || "You're on the Studio 7 guest list");
   const logoUrl = escapeHtml(getPromoEmailLogoUrl());
   const coverUrl = escapeHtml(getPromoEmailCoverImageUrl());
+  const instagramUrl = escapeHtml(STUDIO7_INSTAGRAM_URL);
+  const preheader = `Your code ${discount_code} is ready. Valid for ${validLabel}.`;
 
   const html = `
 <!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f3f4f6;padding:24px 12px;">
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#ececec;font-family:Georgia,'Times New Roman',serif;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(preheader)}</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#ececec;padding:32px 16px;">
     <tr><td align="center">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;">
         <tr>
-          <td style="padding:0;background:#0a0a0a;">
-            <img src="${coverUrl}" alt="" width="560" style="display:block;width:100%;height:auto;max-height:300px;object-fit:cover;border:0;opacity:0.92;" />
-            <div style="padding:20px 24px 24px;text-align:center;background:linear-gradient(180deg,rgba(10,10,10,0.2) 0%,#0a0a0a 100%);margin-top:-48px;position:relative;">
-              <img src="${logoUrl}" alt="Studio 7" width="140" style="display:inline-block;border:0;" />
-            </div>
+          <td style="padding:0 0 16px;text-align:center;">
+            <img src="${logoUrl}" alt="Studio 7" width="96" style="display:inline-block;border:0;height:auto;" />
           </td>
         </tr>
         <tr>
-          <td style="padding:32px 28px 8px;color:#111827;font-size:16px;line-height:1.6;">
-            <p style="margin:0 0 16px;">Hi ${escapeHtml(greetingName)},</p>
-            <p style="margin:0 0 20px;font-size:18px;font-weight:600;color:#0a0a0a;">${escapeHtml(headline || `You're on the Studio 7 guest list`)}</p>
-            <p style="margin:0 0 8px;text-align:center;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Your promo code</p>
-            <p style="margin:0 0 24px;text-align:center;">
-              <span style="display:inline-block;background-color:#0a0a0a;color:#ffffff;padding:16px 32px;border-radius:8px;font-weight:700;font-size:22px;letter-spacing:2px;">${safeCode}</span>
-            </p>
-            <p style="margin:0 0 24px;text-align:center;color:#374151;">Show this code for <strong>${discount_percent}% off</strong> at the event.</p>
-            <p style="margin:0 0 28px;text-align:center;">
-              <a href="${safeUrl}" style="background-color:#0a0a0a;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:600;display:inline-block;">View your guest list pass</a>
-            </p>
-            <p style="margin:0;text-align:center;color:#6b7280;font-size:14px;">Valid for <strong>${validLabel}</strong> from signup. Your personal link shows your code and time remaining.</p>
+          <td style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e5e5;box-shadow:0 8px 32px rgba(0,0,0,0.06);">
+            <img src="${coverUrl}" alt="" width="520" style="display:block;width:100%;height:auto;max-height:200px;object-fit:cover;border:0;" />
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+              <tr>
+                <td style="padding:36px 32px 8px;font-family:Arial,Helvetica,sans-serif;color:#171717;">
+                  <p style="margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:#737373;">Guest list confirmation</p>
+                  <h1 style="margin:0 0 20px;font-size:22px;font-weight:600;line-height:1.35;color:#0a0a0a;">${safeHeadline}</h1>
+                  <p style="margin:0 0 24px;font-size:15px;line-height:1.65;color:#525252;">Dear ${escapeHtml(greetingName)}, thank you for joining us. Present the code below in-store for <strong style="color:#0a0a0a;">${discount_percent}% off</strong>. Your personal pass link includes a live timer for the offer window.</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:0 32px 28px;font-family:Arial,Helvetica,sans-serif;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fafafa;border:1px solid #e5e5e5;border-radius:12px;">
+                    <tr>
+                      <td style="padding:20px 24px;text-align:center;">
+                        <p style="margin:0 0 10px;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#737373;">Your promo code</p>
+                        <p style="margin:0;font-family:'Courier New',Courier,monospace;font-size:26px;font-weight:700;letter-spacing:0.12em;color:#0a0a0a;">${safeCode}</p>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin:20px 0 0;font-size:13px;line-height:1.5;text-align:center;color:#737373;">Valid for <strong style="color:#404040;">${escapeHtml(validLabel)}</strong> from the time you signed up.</p>
+                  <p style="margin:28px 0 0;text-align:center;">
+                    <a href="${safeUrl}" style="background-color:#0a0a0a;color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:999px;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.06em;display:inline-block;">View guest pass &amp; timer</a>
+                  </p>
+                </td>
+              </tr>
+              ${terms_text ? `<tr><td style="padding:0 32px 24px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.55;color:#a3a3a3;border-top:1px solid #f0f0f0;">${escapeHtml(terms_text)}</td></tr>` : ""}
+              <tr>
+                <td style="padding:20px 32px 28px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;text-align:center;color:#a3a3a3;background:#fafafa;border-top:1px solid #f0f0f0;">
+                  Studio 7 · Cape Town<br />
+                  <a href="${instagramUrl}" style="color:#0a0a0a;text-decoration:none;font-weight:600;">Follow @studio7.rsa on Instagram</a>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
-        ${terms_text ? `<tr><td style="padding:0 28px 24px;color:#9ca3af;font-size:12px;line-height:1.5;">${escapeHtml(terms_text)}</td></tr>` : ""}
         <tr>
-          <td style="background-color:#f9fafb;padding:20px 28px;text-align:center;color:#9ca3af;font-size:12px;border-top:1px solid #e5e7eb;">
-            Studio 7 · <a href="${safeUrl}" style="color:#0a0a0a;">Open your guest pass</a>
+          <td style="padding:20px 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.5;text-align:center;color:#a3a3a3;">
+            You received this because you signed up for a Studio 7 promotion.<br />
+            If you did not request this, you may ignore this message.
           </td>
         </tr>
       </table>
@@ -105,19 +134,23 @@ export async function sendPromoConfirmationEmail(
 </html>`;
 
   const text = [
-    `Hi ${greetingName},`,
+    `Dear ${greetingName},`,
     "",
     headline || "You're on the Studio 7 guest list",
     "",
-    `Your code: ${discount_code}`,
-    "",
-    `Show this code for ${discount_percent}% off.`,
+    `Your promo code: ${discount_code}`,
+    `${discount_percent}% off in-store.`,
     `Valid for ${validLabel} from signup.`,
     "",
-    `View your pass & timer: ${personal_url}`,
-    terms_text || "",
+    `Guest pass & timer: ${personal_url}`,
+    "",
+    `Instagram: ${STUDIO7_INSTAGRAM_URL}`,
+    terms_text ? "" : null,
+    terms_text || null,
+    "",
+    "— Studio 7",
   ]
-    .filter(Boolean)
+    .filter((line) => line !== null)
     .join("\n");
 
   try {

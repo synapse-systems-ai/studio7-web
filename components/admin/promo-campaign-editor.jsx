@@ -464,10 +464,7 @@ function AnalyticsTab({ campaignId }) {
       })
       const j = await r.json()
       if (!r.ok) throw new Error(j.error || 'Failed to resend')
-      const parts = []
-      if (j.emailOk) parts.push('email')
-      if (j.smsOk) parts.push('SMS')
-      toast.success('Code resent', { description: `Sent via ${parts.join(' and ') || 'unknown channel'}.` })
+      toast.success('Code resent', { description: j.emailOk ? 'Confirmation email sent.' : 'Email may not have sent.' })
     } catch (e) {
       toast.error('Failed to resend', { description: e.message })
     } finally {
