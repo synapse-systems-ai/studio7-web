@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -54,11 +55,13 @@ export function AdminUserMenu({ user, onSignOut }) {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="font-normal">
-          <p className="truncate text-sm font-semibold text-foreground">{user.name || "Team member"}</p>
-          <p className="truncate text-xs font-normal text-muted-foreground">{user.email}</p>
-          <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{role}</p>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal">
+            <p className="truncate text-sm font-semibold text-foreground">{user.name || "Team member"}</p>
+            <p className="truncate text-xs font-normal text-muted-foreground">{user.email}</p>
+            <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{role}</p>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="gap-2"
