@@ -8,8 +8,6 @@ import {
 } from "@/lib/promo-instagram-verification";
 import { normalizeInstagramHandle } from "@/lib/promo-instagram";
 
-export const runtime = "nodejs";
-
 function verifyMetaSignature(rawBody: string, signatureHeader: string | null) {
   const secret = process.env.META_APP_SECRET?.trim();
   if (!secret || !signatureHeader?.startsWith("sha256=")) return false;
