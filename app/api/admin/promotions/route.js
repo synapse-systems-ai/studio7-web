@@ -8,6 +8,7 @@ import {
   PROMO_CAMPAIGN_FORMAT_INSTAGRAM,
 } from "@/lib/promo-campaign-format";
 import { normalizeInstagramHandle } from "@/lib/promo-instagram";
+import { getSupabaseProjectLabel } from "@/lib/supabase-project-label";
 
 function parseBrand(value) {
   return value === PROMO_BRAND_STUDIO7 ? PROMO_BRAND_STUDIO7 : PROMO_BRAND_420;
@@ -116,10 +117,10 @@ export async function POST(request) {
   if (insertErr) {
     const msg = insertErr.message || "Insert failed";
     if (/campaign_format|schema cache/i.test(msg)) {
+      const project = getSupabaseProjectLabel();
       return NextResponse.json(
         {
-          error:
-            "Database missing Instagram/guest-list columns. In Supabase SQL Editor, run supabase/patch_campaign_format_columns.sql then try again.",
+          error: `This app is using Supabase project "${project}". Run supabase/patch_campaign_format_columns.sql in THAT project's SQL Editor (not a different Supabase project), then Settings → API → Reload schema. Raw: ${msg}`,
         },
         { status: 500 },
       );
