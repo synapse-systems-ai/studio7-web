@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Studio 7",
-  description: "Events, parties, and guest-list promos.",
+  description: "QR event promos, guest lists, and team admin for Studio 7.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

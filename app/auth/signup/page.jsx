@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { persistClientAuthToken } from "@/lib/client-auth-storage";
+import { useJWTAuth } from "@/hooks/use-jwt-auth";
 import { toast } from "sonner";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { mutate } = useJWTAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,13 +27,14 @@ export default function SignUpPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name, email, password, role: "admin" }),
+        body: JSON.stringify({ name, email, password }),
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Sign up failed");
       if (j.token) persistClientAuthToken(j.token);
-      toast.success(j.bootstrap ? "Welcome — you're the first admin" : "Account created");
-      router.push("/admin/promotions");
+      await mutate?.();
+      toast.success(j.bootstrap ? "Welcome — admin account ready" : "Account created — welcome");
+      router.replace("/admin/promotions");
     } catch (err) {
       toast.error(err.message || "Sign up failed");
     } finally {
@@ -41,8 +44,8 @@ export default function SignUpPage() {
 
   return (
     <AuthShell
-      title="Create admin account"
-      subtitle="For the first Studio 7 admin, or when bootstrap signup is enabled by your team."
+      title="Create account"
+      subtitle="Sign up with your email and password. Your team lead can also add you from the admin Users page."
       footer={
         <p className="mt-6 text-center text-xs text-zinc-500">
           Already have an account?{" "}
@@ -52,7 +55,7 @@ export default function SignUpPage() {
         </p>
       }
     >
-      <form onSubmit={submit} className="space-y-4 sm:rounded-xl sm:border sm:border-zinc-200 sm:p-5">
+      <form onSubmit={submit} className="space-y-4">
         <div className="space-y-1">
           <Label htmlFor="name">Name</Label>
           <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required className="h-10" />

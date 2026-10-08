@@ -1,30 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { Studio7FallbackHero } from "@/components/promo/studio7-fallback-hero";
+import { Studio7Logo } from "@/components/brand/studio7-logo";
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function AuthShell({ title, subtitle, children, footer }) {
   return (
-    <div className="fixed inset-0 h-dvh w-full overflow-hidden text-zinc-900">
-      <Studio7FallbackHero />
-      <div className="relative z-10 flex h-full w-full items-center justify-center overflow-y-auto p-3 sm:p-4">
-        <div className="mx-auto my-auto w-full max-w-md">
-          <div className="rounded-2xl bg-white/92 px-4 py-6 shadow-2xl backdrop-blur-md sm:bg-white sm:px-6 sm:py-8">
-            <div className="mb-6 flex flex-col items-center gap-2 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-violet-700/80">Studio 7</p>
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-              {subtitle && <p className="max-w-sm text-sm text-zinc-600">{subtitle}</p>}
+    <MarketingPageShell>
+      <div className="flex min-h-full flex-col items-center justify-center p-4 sm:p-6">
+        <Card className="w-full max-w-md border-white/10 bg-white/95 text-zinc-900 shadow-2xl backdrop-blur-xl">
+          <CardHeader className="items-center space-y-3 pb-0 text-center">
+            <Studio7Logo size={88} priority href="/" />
+            <div className="space-y-1.5">
+              <CardTitle className="text-2xl font-bold tracking-tight sm:text-[1.65rem]">{title}</CardTitle>
+              {subtitle ? <CardDescription className="text-sm text-zinc-600">{subtitle}</CardDescription> : null}
             </div>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-6">
             {children}
             {footer}
-          </div>
-          <p className="mt-4 text-center text-xs text-zinc-300 sm:text-zinc-500">
-            <Link href="/" className="underline-offset-2 hover:underline">
-              Back to site
-            </Link>
-          </p>
-        </div>
+          </CardContent>
+        </Card>
+        <p className="mt-5 text-center text-xs text-zinc-300">
+          <Link href="/" className="underline-offset-4 hover:text-white hover:underline">
+            Back to site
+          </Link>
+        </p>
       </div>
-    </div>
+    </MarketingPageShell>
   );
 }

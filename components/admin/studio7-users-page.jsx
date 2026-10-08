@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, ShieldCheck, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-jwt-auth";
 import { hasPromotionsAdminAccess } from "@/lib/promotions-auth";
@@ -52,25 +52,66 @@ export function Studio7UsersPage() {
     load();
   }, [load]);
 
+  const stats = useMemo(() => {
+    const active = users.filter((u) => u.is_active).length;
+    const admins = users.filter((u) => String(u.role).toLowerCase() === "admin").length;
+    return { total: users.length, active, admins };
+  }, [users]);
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+      <div className="space-y-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-violet-700">Team access</p>
             <h1 className="text-3xl font-bold tracking-tight">User management</h1>
-            <p className="text-muted-foreground">Admin and marketing accounts for Studio 7</p>
+            <p className="text-muted-foreground">
+              Create team logins here, or let people register on the public sign-up page (marketing access by default).
+            </p>
           </div>
           {isAdmin && <CreateUserDialog onCreated={load} />}
         </div>
 
-        <Card>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card className="border-zinc-200/80 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Team members</CardTitle>
+              <Users className="size-4 text-violet-600" aria-hidden />
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold tabular-nums">{loading ? "—" : stats.total}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-zinc-200/80 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
+              <ShieldCheck className="size-4 text-emerald-600" aria-hidden />
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold tabular-nums">{loading ? "—" : stats.active}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-zinc-200/80 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Admins</CardTitle>
+              <ShieldCheck className="size-4 text-zinc-500" aria-hidden />
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold tabular-nums">{loading ? "—" : stats.admins}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border-zinc-200/80 shadow-sm">
           <CardHeader>
-            <CardTitle>Team</CardTitle>
+            <CardTitle>Team directory</CardTitle>
             <CardDescription>Roles with access to promotions: admin, marketing, store_manager</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-muted-foreground py-6 text-center">Loading…</p>
+              <p className="py-10 text-center text-sm text-muted-foreground">Loading team…</p>
+            ) : users.length === 0 ? (
+              <p className="py-10 text-center text-sm text-muted-foreground">No users yet. Add your first team member.</p>
             ) : (
               <Table>
                 <TableHeader>

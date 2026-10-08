@@ -58,7 +58,7 @@ export default function SignInForm() {
         </p>
       }
     >
-      <form onSubmit={submit} className="space-y-4 sm:rounded-xl sm:border sm:border-zinc-200 sm:p-5">
+      <form onSubmit={submit} className="space-y-4">
         <div className="space-y-1">
           <Label htmlFor="email" className="text-xs sm:text-sm">
             Email

@@ -3,11 +3,12 @@ import bcrypt from "bcryptjs";
 import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { applyAuthCookie, authenticateStaffCredentials } from "@/lib/staff-login";
 import { authenticateWithRole } from "@/lib/api-auth";
-import { PROMOTIONS_ADMIN_ONLY_ROLES } from "@/lib/promotions-auth";
+import { hasPromotionsAccess, PROMOTIONS_ADMIN_ONLY_ROLES } from "@/lib/promotions-auth";
 
 const STUDIO7_ROLES = new Set(["admin", "marketing", "store_manager"]);
 
-async function canBootstrapAdmin() {
+/** True when there are no admin/marketing users yet (empty Studio 7 team). */
+async function canBootstrapFirstAdmin() {
   if (process.env.STUDIO7_ALLOW_BOOTSTRAP_SIGNUP === "true") return true;
   const { count, error } = await getServiceRoleSupabase()
     .from("users")
@@ -17,7 +18,7 @@ async function canBootstrapAdmin() {
   return (count ?? 0) === 0;
 }
 
-/** Bootstrap first admin or create user (admin-only after bootstrap). */
+/** Public signup (marketing) or admin-created users; auto sign-in after create. */
 export async function POST(request) {
   let body;
   try {
@@ -29,7 +30,7 @@ export async function POST(request) {
   const name = String(body.name || "").trim();
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
-  const role = String(body.role || "admin").toLowerCase();
+  const requestedRole = String(body.role || "marketing").toLowerCase();
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: "Name, email, and password are required" }, { status: 400 });
@@ -37,24 +38,24 @@ export async function POST(request) {
   if (password.length < 8) {
     return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
   }
-  if (!STUDIO7_ROLES.has(role)) {
-    return NextResponse.json({ error: "Invalid role for Studio 7 admin" }, { status: 400 });
-  }
 
-  const bootstrap = await canBootstrapAdmin();
+  const { user: adminUser, error: adminAuthError } = await authenticateWithRole(
+    request,
+    PROMOTIONS_ADMIN_ONLY_ROLES,
+  );
+  const isAdminCreator = !adminAuthError && adminUser;
 
-  if (!bootstrap) {
-    const { user, error } = await authenticateWithRole(request, PROMOTIONS_ADMIN_ONLY_ROLES);
-    if (error) return error;
-    if (!user) {
-      return NextResponse.json({ error: "Admin authentication required" }, { status: 403 });
-    }
+  let role = "marketing";
+  if (isAdminCreator && STUDIO7_ROLES.has(requestedRole)) {
+    role = requestedRole;
+  } else if (!isAdminCreator && (await canBootstrapFirstAdmin())) {
+    role = "admin";
   }
 
   const supabase = getServiceRoleSupabase();
   const { data: existing } = await supabase.from("users").select("id").eq("email", email).maybeSingle();
   if (existing) {
-    return NextResponse.json({ error: "Email already registered" }, { status: 409 });
+    return NextResponse.json({ error: "Email already registered — try signing in" }, { status: 409 });
   }
 
   const password_hash = await bcrypt.hash(password, 10);
@@ -74,18 +75,16 @@ export async function POST(request) {
     return NextResponse.json({ error: insertErr.message }, { status: 500 });
   }
 
-  if (bootstrap) {
-    const login = await authenticateStaffCredentials(email, password);
-    if (login.ok) {
-      const response = NextResponse.json({
-        success: true,
-        user: created,
-        bootstrap: true,
-        ...(process.env.NODE_ENV === "development" ? { token: login.token } : {}),
-      });
-      applyAuthCookie(response, login.token);
-      return response;
-    }
+  const login = await authenticateStaffCredentials(email, password);
+  if (login.ok && hasPromotionsAccess(login.userData)) {
+    const response = NextResponse.json({
+      success: true,
+      user: created,
+      bootstrap: role === "admin",
+      ...(process.env.NODE_ENV === "development" ? { token: login.token } : {}),
+    });
+    applyAuthCookie(response, login.token);
+    return response;
   }
 
   return NextResponse.json({ success: true, user: created }, { status: 201 });

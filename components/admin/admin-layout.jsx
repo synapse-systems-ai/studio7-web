@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Tag, Users, LogOut, Home } from "lucide-react";
+import { Studio7Logo } from "@/components/brand/studio7-logo";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/hooks/use-jwt-auth";
 
@@ -23,23 +25,27 @@ export function AdminLayout({ children }) {
   };
 
   return (
-    <div className="min-h-dvh bg-zinc-50 text-zinc-900">
-      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
-          <div className="flex items-center gap-6">
-            <Link href="/admin/promotions" className="text-sm font-bold tracking-tight">
-              Studio 7 Admin
-            </Link>
-            <nav className="hidden items-center gap-1 sm:flex">
+    <div className="min-h-dvh bg-zinc-100 text-zinc-900">
+      <header className="sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950 text-white shadow-lg">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
+          <div className="flex min-w-0 items-center gap-4 sm:gap-8">
+            <div className="flex items-center gap-3">
+              <Studio7Logo size={40} href="/admin/promotions" className="ring-white/10" />
+              <div className="hidden min-w-0 sm:block">
+                <p className="truncate text-sm font-semibold tracking-tight">Studio 7</p>
+                <p className="truncate text-[11px] text-zinc-400">Admin</p>
+              </div>
+            </div>
+            <nav className="flex items-center gap-1 overflow-x-auto">
               {nav.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
                   className={cn(
-                    "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+                    "inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors",
                     pathname?.startsWith(href)
-                      ? "bg-zinc-900 text-white"
-                      : "text-zinc-600 hover:bg-zinc-100",
+                      ? "bg-white text-zinc-950"
+                      : "text-zinc-300 hover:bg-white/10 hover:text-white",
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -48,24 +54,39 @@ export function AdminLayout({ children }) {
               ))}
             </nav>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-zinc-700 bg-transparent text-zinc-200 hover:bg-zinc-800 hover:text-white"
+              asChild
+            >
               <Link href="/">
                 <Home className="mr-1.5 h-4 w-4" />
-                Site
+                <span className="hidden sm:inline">Site</span>
               </Link>
             </Button>
-            {session?.user?.email && (
-              <span className="hidden text-xs text-zinc-500 sm:inline">{session.user.email}</span>
-            )}
-            <Button variant="ghost" size="sm" onClick={signOut}>
+            {session?.user?.email ? (
+              <Badge
+                variant="secondary"
+                className="hidden max-w-[180px] truncate border-zinc-700 bg-zinc-900 text-zinc-200 lg:inline-flex"
+              >
+                {session.user.email}
+              </Badge>
+            ) : null}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-zinc-200 hover:bg-zinc-800 hover:text-white"
+              onClick={signOut}
+            >
               <LogOut className="mr-1.5 h-4 w-4" />
-              Sign out
+              <span className="hidden sm:inline">Sign out</span>
             </Button>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:py-10">{children}</main>
     </div>
   );
 }
