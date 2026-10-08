@@ -53,7 +53,7 @@ function CreateCampaignDialog({ onCreated }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [campaignFormat, setCampaignFormat] = useState(PROMO_CAMPAIGN_FORMAT_GUEST_LIST);
-  const [discountPercent, setDiscountPercent] = useState(10);
+  const [discountPercent, setDiscountPercent] = useState("10");
   const [instagramUsername, setInstagramUsername] = useState("studio7.rsa");
   const [saving, setSaving] = useState(false);
 
@@ -69,7 +69,7 @@ function CreateCampaignDialog({ onCreated }) {
           name: name.trim(),
           brand: brand.id,
           campaign_format: campaignFormat,
-          discount_percent: discountPercent,
+          discount_percent: Math.min(100, Math.max(1, parseInt(discountPercent, 10) || 10)),
           instagram_username:
             campaignFormat === PROMO_CAMPAIGN_FORMAT_INSTAGRAM ? instagramUsername.trim() : undefined,
         }),
@@ -80,7 +80,7 @@ function CreateCampaignDialog({ onCreated }) {
       setOpen(false);
       setName("");
       setCampaignFormat(PROMO_CAMPAIGN_FORMAT_GUEST_LIST);
-      setDiscountPercent(10);
+      setDiscountPercent("10");
       setInstagramUsername("studio7.rsa");
       onCreated?.(j.campaign);
     } catch (e) {
@@ -142,7 +142,7 @@ function CreateCampaignDialog({ onCreated }) {
               min={1}
               max={100}
               value={discountPercent}
-              onChange={(e) => setDiscountPercent(Number(e.target.value) || 10)}
+              onChange={(e) => setDiscountPercent(e.target.value)}
             />
           </div>
           {campaignFormat === PROMO_CAMPAIGN_FORMAT_INSTAGRAM ? (

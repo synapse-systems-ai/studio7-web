@@ -113,7 +113,19 @@ export async function POST(request) {
     .select()
     .single();
 
-  if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 });
+  if (insertErr) {
+    const msg = insertErr.message || "Insert failed";
+    if (/campaign_format|schema cache/i.test(msg)) {
+      return NextResponse.json(
+        {
+          error:
+            "Database missing Instagram/guest-list columns. In Supabase SQL Editor, run supabase/patch_campaign_format_columns.sql then try again.",
+        },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 
   return NextResponse.json({ campaign }, { status: 201 });
 }

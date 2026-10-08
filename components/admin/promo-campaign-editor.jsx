@@ -138,7 +138,7 @@ function ContentTab({ campaign, onSaved }) {
         headline: form.headline,
         description: form.description,
         image_url: form.image_url || null,
-        discount_percent: form.discount_percent,
+        discount_percent: Math.min(100, Math.max(1, parseInt(String(form.discount_percent), 10) || 10)),
         terms_text: form.terms_text,
         is_active: form.is_active,
         code_valid_hours: Number(form.code_valid_hours) || 24,
