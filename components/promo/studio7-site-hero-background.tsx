@@ -6,23 +6,46 @@ import { cn } from "@/lib/utils";
 
 const INTERVAL_MS = 6000;
 
-/** Full-bleed rotating hero photos (same set as studio7rsa.com). */
+type HeroPhoto = { src: string; alt: string };
+
+/** Full-bleed rotating hero photos (admin gallery or bundled defaults). */
 export function Studio7SiteHeroBackground({ className }: { className?: string }) {
+  const [photos, setPhotos] = useState<HeroPhoto[]>(() =>
+    STUDIO7_SITE_HERO_PHOTOS.map((p) => ({ src: p.src, alt: p.alt })),
+  );
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    fetch("/api/promo/hero-slides")
+      .then((r) => r.json())
+      .then((json) => {
+        if (cancelled || !json.slides?.length) return;
+        setPhotos(json.slides);
+        setIndex(0);
+      })
+      .catch(() => {
+        // keep bundled defaults
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (photos.length < 2) return undefined;
     const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % STUDIO7_SITE_HERO_PHOTOS.length);
+      setIndex((i) => (i + 1) % photos.length);
     }, INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, []);
+  }, [photos.length]);
 
   return (
     <div className={cn("absolute inset-0 overflow-hidden bg-black", className)}>
-      {STUDIO7_SITE_HERO_PHOTOS.map((photo, i) => (
+      {photos.map((photo, i) => (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          key={photo.src}
+          key={`${photo.src}-${i}`}
           src={photo.src}
           alt=""
           aria-hidden={i !== index}

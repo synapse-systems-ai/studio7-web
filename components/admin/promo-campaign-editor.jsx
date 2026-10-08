@@ -231,12 +231,15 @@ function ContentTab({ campaign, onSaved }) {
                   onClick={() => setForm((f) => ({ ...f, image_url: '' }))}
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
-                  Use default brand video
+                  {brand.id === 'studio7' ? 'Use fading photo gallery' : 'Use default brand video'}
                 </Button>
               ) : null}
             </div>
             <p className="text-xs text-muted-foreground">
-              JPG, PNG, WebP or GIF - max 5MB. Shown full-screen behind the signup form. Leave empty for the default brand video.
+              JPG, PNG, WebP or GIF - max 5MB. Shown full-screen behind the signup form.{' '}
+              {brand.id === 'studio7'
+                ? 'Leave empty for the rotating background gallery (edit under Background gallery).'
+                : 'Leave empty for the default brand video.'}
             </p>
           </div>
 

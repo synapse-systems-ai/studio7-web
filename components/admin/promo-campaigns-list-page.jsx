@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminBackLink } from "@/components/admin/admin-back-link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -37,9 +37,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Plus, Search, Tag, Trash2, Users } from "lucide-react";
+import { ArrowRight, Images, Plus, Search, Tag, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { usePromoBrand } from "@/lib/promo-brand-context";
+import { PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
 
 function CreateCampaignDialog({ onCreated }) {
   const brand = usePromoBrand();
@@ -261,6 +262,15 @@ export function PromoCampaignsListPage() {
             <p className="text-muted-foreground">{brand.listSubtitle}</p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-center">
+            {brand.id === PROMO_BRAND_STUDIO7 ? (
+              <Link
+                href={`${brand.adminBasePath}/hero-gallery`}
+                className={cn(buttonVariants({ variant: "outline" }), "inline-flex items-center gap-2")}
+              >
+                <Images className="h-4 w-4" />
+                Background gallery
+              </Link>
+            ) : null}
             <CreateCampaignDialog
               onCreated={(c) => c && router.push(`${brand.adminBasePath}/${c.id}`)}
             />
