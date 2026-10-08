@@ -6,7 +6,7 @@ import { getPromoSignupStatus, resolvePromoCodeValidHours } from "@/lib/promo-si
 import { getPromoPersonalUrl } from "@/lib/promo-public-url";
 import { sendPromoSignupNotifications } from "@/lib/promo-notifications";
 
-/** POST /api/admin/promotions/[campaignId]/signups/[signupId]/resend — resend the existing code by email + SMS */
+/** POST /api/admin/promotions/[campaignId]/signups/[signupId]/resend - resend the existing code by email + SMS */
 export async function POST(request, { params }) {
   const { error } = await authenticateWithRole(request, PROMOTIONS_ADMIN_ONLY_ROLES);
   if (error) return error;

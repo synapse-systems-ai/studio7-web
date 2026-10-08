@@ -4,7 +4,7 @@ import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ADMIN_ONLY_ROLES } from "@/lib/promotions-auth";
 import { getPromoSignupStatus } from "@/lib/promo-signup";
 
-/** DELETE /api/admin/promotions/[campaignId]/signups/[signupId] — only once cancelled */
+/** DELETE /api/admin/promotions/[campaignId]/signups/[signupId] - only once cancelled */
 export async function DELETE(request, { params }) {
   const { error } = await authenticateWithRole(request, PROMOTIONS_ADMIN_ONLY_ROLES);
   if (error) return error;

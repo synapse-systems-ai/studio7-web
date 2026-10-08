@@ -8,7 +8,7 @@ function parseBrand(value) {
   return value === PROMO_BRAND_STUDIO7 ? PROMO_BRAND_STUDIO7 : PROMO_BRAND_420;
 }
 
-/** GET /api/admin/promotions — list campaigns with signup counts */
+/** GET /api/admin/promotions - list campaigns with signup counts */
 export async function GET(request) {
   const { user, error } = await authenticateWithRole(request, PROMOTIONS_ACCESS_ROLES);
   if (error) return error;
@@ -45,7 +45,7 @@ function slugify(name) {
     .slice(0, 60);
 }
 
-/** POST /api/admin/promotions — create a new campaign */
+/** POST /api/admin/promotions - create a new campaign */
 export async function POST(request) {
   const { user, error } = await authenticateWithRole(request, PROMOTIONS_ACCESS_ROLES);
   if (error) return error;
@@ -80,7 +80,7 @@ export async function POST(request) {
       brand,
       headline: body.headline || brandConfig.defaultHeadline,
       description: body.description ?? brandConfig.defaultDescription,
-      // No image_url — every campaign uses the fixed brand photo (lib/promo-brand-image.js).
+      // No image_url - every campaign uses the fixed brand photo (lib/promo-brand-image.js).
       discount_percent: body.discount_percent || 10,
       terms_text: body.terms_text || null,
       is_active: true,

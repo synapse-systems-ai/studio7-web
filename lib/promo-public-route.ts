@@ -229,11 +229,11 @@ export async function promoSlugPOST(
 
   const deliveryNote =
     !emailOk && !smsOk
-      ? "Your code is saved below — we couldn't send email or SMS; save it or use your personal link."
+      ? "Your code is saved below - we couldn't send email or SMS; save it or use your personal link."
       : !emailOk
-        ? "Your code is below — we couldn't email it, but SMS should have been sent."
+        ? "Your code is below - we couldn't email it, but SMS should have been sent."
         : !smsOk
-          ? "Your code is below — we couldn't text it, but email should have been sent."
+          ? "Your code is below - we couldn't text it, but email should have been sent."
           : brand.signupSuccessDefault;
 
   return NextResponse.json({

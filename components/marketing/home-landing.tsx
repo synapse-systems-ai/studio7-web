@@ -43,7 +43,7 @@ export function HomeLanding() {
               Create account
             </Link>
             <p className="pt-2 text-center text-xs leading-relaxed text-zinc-500">
-              Guests use the QR or link for your event — not this homepage.
+              Guests use the QR or link for your event - not this homepage.
             </p>
           </CardContent>
         </Card>

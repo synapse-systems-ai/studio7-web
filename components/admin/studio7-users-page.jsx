@@ -23,7 +23,18 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ShieldCheck, Users } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Plus, ShieldCheck, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/hooks/use-jwt-auth";
 import { hasPromotionsAdminAccess } from "@/lib/promotions-auth";
@@ -65,7 +76,7 @@ export function Studio7UsersPage() {
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wider text-violet-700">Team access</p>
             <h1 className="text-3xl font-bold tracking-tight">User management</h1>
-            <p className="text-muted-foreground">
+            <p className="text-zinc-600">
               Create team logins here, or let people register on the public sign-up page (marketing access by default).
             </p>
           </div>
@@ -75,62 +86,94 @@ export function Studio7UsersPage() {
         <div className="grid gap-4 sm:grid-cols-3">
           <Card className="border-zinc-200/80 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Team members</CardTitle>
+              <CardTitle className="text-sm font-semibold text-zinc-700">Team members</CardTitle>
               <Users className="size-4 text-violet-600" aria-hidden />
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold tabular-nums">{loading ? "—" : stats.total}</p>
+              <p className="text-3xl font-bold tabular-nums">{loading ? "-" : stats.total}</p>
             </CardContent>
           </Card>
           <Card className="border-zinc-200/80 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
+              <CardTitle className="text-sm font-semibold text-zinc-700">Active</CardTitle>
               <ShieldCheck className="size-4 text-emerald-600" aria-hidden />
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold tabular-nums">{loading ? "—" : stats.active}</p>
+              <p className="text-3xl font-bold tabular-nums">{loading ? "-" : stats.active}</p>
             </CardContent>
           </Card>
           <Card className="border-zinc-200/80 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Admins</CardTitle>
+              <CardTitle className="text-sm font-semibold text-zinc-700">Admins</CardTitle>
               <ShieldCheck className="size-4 text-zinc-500" aria-hidden />
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold tabular-nums">{loading ? "—" : stats.admins}</p>
+              <p className="text-3xl font-bold tabular-nums">{loading ? "-" : stats.admins}</p>
             </CardContent>
           </Card>
         </div>
 
-        <Card className="border-zinc-200/80 shadow-sm">
+        <Card className="border-zinc-300 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle>Team directory</CardTitle>
-            <CardDescription>Roles with access to promotions: admin, marketing, store_manager</CardDescription>
+            <CardTitle className="text-zinc-900">Team directory</CardTitle>
+            <CardDescription className="text-zinc-600">
+              Roles with access to promotions: admin, marketing, store_manager
+            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="text-zinc-900">
             {loading ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">Loading team…</p>
+              <p className="py-10 text-center text-sm font-medium text-zinc-600">Loading team…</p>
             ) : users.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">No users yet. Add your first team member.</p>
+              <p className="py-10 text-center text-sm font-medium text-zinc-600">
+                No users yet. Add your first team member.
+              </p>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
+                  <TableRow className="border-zinc-200 bg-zinc-100 hover:bg-zinc-100">
+                    <TableHead className="px-4 font-semibold text-zinc-800">Name</TableHead>
+                    <TableHead className="px-4 font-semibold text-zinc-800">Email</TableHead>
+                    <TableHead className="px-4 font-semibold text-zinc-800">Role</TableHead>
+                    <TableHead className="px-4 font-semibold text-zinc-800">Status</TableHead>
+                    {isAdmin ? (
+                      <TableHead className="px-4 text-right font-semibold text-zinc-800">Actions</TableHead>
+                    ) : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.name}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{u.role}</Badge>
+                    <TableRow key={u.id} className="border-zinc-200">
+                      <TableCell className="px-4 font-semibold text-zinc-900">{u.name || "-"}</TableCell>
+                      <TableCell className="px-4 text-zinc-800">{u.email}</TableCell>
+                      <TableCell className="px-4">
+                        <Badge
+                          variant="outline"
+                          className="border-violet-200 bg-violet-50 font-medium capitalize text-violet-900"
+                        >
+                          {u.role?.replace("_", " ")}
+                        </Badge>
                       </TableCell>
-                      <TableCell>{u.is_active ? "Active" : "Inactive"}</TableCell>
+                      <TableCell className="px-4">
+                        <Badge
+                          variant="outline"
+                          className={
+                            u.is_active
+                              ? "border-emerald-200 bg-emerald-50 font-medium text-emerald-900"
+                              : "border-zinc-300 bg-zinc-100 font-medium text-zinc-700"
+                          }
+                        >
+                          {u.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      {isAdmin ? (
+                        <TableCell className="px-4 text-right">
+                          <DeleteUserButton
+                            user={u}
+                            currentUserId={session?.user?.id}
+                            onDeleted={load}
+                          />
+                        </TableCell>
+                      ) : null}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -140,6 +183,72 @@ export function Studio7UsersPage() {
         </Card>
       </div>
     </AdminLayout>
+  );
+}
+
+function DeleteUserButton({ user, currentUserId, onDeleted }) {
+  const [deleting, setDeleting] = useState(false);
+  const isSelf = String(currentUserId) === String(user.id);
+
+  const remove = async () => {
+    setDeleting(true);
+    try {
+      const r = await fetch(`/api/admin/users/${user.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Could not remove user");
+      toast.success(`${user.name || user.email} removed from Studio 7`);
+      onDeleted?.();
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (isSelf) {
+    return <span className="text-xs text-zinc-500">You</span>;
+  }
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+          disabled={deleting}
+        >
+          <Trash2 className="mr-1.5 size-4" aria-hidden />
+          Delete
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remove team member?</AlertDialogTitle>
+          <AlertDialogDescription>
+            <span className="font-medium text-zinc-900">{user.name}</span> ({user.email}) will lose access to Studio
+            7 admin. Their account stays in the database but is deactivated.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-red-600 text-white hover:bg-red-700"
+            disabled={deleting}
+            onClick={(e) => {
+              e.preventDefault();
+              remove();
+            }}
+          >
+            {deleting ? "Removing…" : "Delete user"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

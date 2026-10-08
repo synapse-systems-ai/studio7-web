@@ -37,7 +37,7 @@ export async function GET(request, { params }) {
   return NextResponse.json({ campaign });
 }
 
-/** PATCH /api/admin/promotions/[campaignId] — edit landing page content */
+/** PATCH /api/admin/promotions/[campaignId] - edit landing page content */
 export async function PATCH(request, { params }) {
   const { error } = await authenticateWithRole(request, PROMOTIONS_ACCESS_ROLES);
   if (error) return error;

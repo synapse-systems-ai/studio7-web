@@ -76,7 +76,7 @@ export function JWTAuthProvider({ children }) {
         return false;
       }
 
-      // 5xx / other — do not clear session; next poll or navigation can retry
+      // 5xx / other - do not clear session; next poll or navigation can retry
       return false;
     } catch (error) {
       console.error("Auth check failed:", error);
@@ -97,7 +97,7 @@ export function JWTAuthProvider({ children }) {
         headers: getAuthFetchHeaders(),
       });
     } catch {
-      // Network error — skip
+      // Network error - skip
     }
   }, []);
 
@@ -106,7 +106,7 @@ export function JWTAuthProvider({ children }) {
     checkAuth();
   }, [checkAuth]);
 
-  // Periodic auth polling — catches expired sessions
+  // Periodic auth polling - catches expired sessions
   useEffect(() => {
     if (!user) return;
 
@@ -117,7 +117,7 @@ export function JWTAuthProvider({ children }) {
     return () => clearInterval(interval);
   }, [user, checkAuth]);
 
-  // Periodic token refresh — extends session before it expires
+  // Periodic token refresh - extends session before it expires
   useEffect(() => {
     if (!user) return;
 
@@ -173,7 +173,7 @@ export function JWTAuthProvider({ children }) {
       console.error("Sign in error:", error);
       return {
         error:
-          "Network error — use http://192.168.x.x:3000 on your phone (not localhost), same Wi‑Fi as this PC.",
+          "Network error - use http://192.168.x.x:3000 on your phone (not localhost), same Wi‑Fi as this PC.",
       };
     }
   };

@@ -59,7 +59,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
         localStorage.setItem(deviceKey, deviceId);
       }
     } catch {
-      // localStorage unavailable — skip click tracking.
+      // localStorage unavailable - skip click tracking.
     }
 
     const url = new URL(`${apiBase}/${slug}`, window.location.origin);

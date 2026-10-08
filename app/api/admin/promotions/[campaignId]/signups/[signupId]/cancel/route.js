@@ -4,7 +4,7 @@ import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ADMIN_ONLY_ROLES } from "@/lib/promotions-auth";
 import { getPromoSignupStatus } from "@/lib/promo-signup";
 
-/** POST /api/admin/promotions/[campaignId]/signups/[signupId]/cancel — admin voids a promo code */
+/** POST /api/admin/promotions/[campaignId]/signups/[signupId]/cancel - admin voids a promo code */
 export async function POST(request, { params }) {
   const { user, error } = await authenticateWithRole(request, PROMOTIONS_ADMIN_ONLY_ROLES);
   if (error) return error;

@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let serviceRoleSingleton: SupabaseClient | null = null;
 
-/** URL + SUPABASE_SERVICE_ROLE_KEY only — server-side route handlers. */
+/** URL + SUPABASE_SERVICE_ROLE_KEY only - server-side route handlers. */
 export function getServiceRoleSupabase(): SupabaseClient {
   if (!serviceRoleSingleton) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();

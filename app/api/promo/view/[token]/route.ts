@@ -3,7 +3,7 @@ import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { getPromoSignupStatus } from "@/lib/promo-signup";
 import { PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
 
-/** GET /api/promo/view/[token] — Studio 7 personal promo page data */
+/** GET /api/promo/view/[token] - Studio 7 personal promo page data */
 export async function GET(_request: Request, context: { params: Promise<{ token: string }> }) {
   const { token } = await context.params;
   if (!token) {

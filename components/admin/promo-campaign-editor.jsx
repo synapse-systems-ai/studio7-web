@@ -118,7 +118,7 @@ function ContentTab({ campaign, onSaved }) {
       const j = await r.json()
       if (!r.ok) throw new Error(j.error || 'Upload failed')
       setForm((f) => ({ ...f, image_url: j.url }))
-      toast.success('Image uploaded — save changes to apply')
+      toast.success('Image uploaded - save changes to apply')
     } catch (e) {
       toast.error('Upload failed', { description: e.message })
     } finally {
@@ -237,7 +237,7 @@ function ContentTab({ campaign, onSaved }) {
               ) : null}
             </div>
             <p className="text-xs text-muted-foreground">
-              JPG, PNG, WebP or GIF — max 5MB. Shown full-screen behind the signup form. Leave empty for the default brand video.
+              JPG, PNG, WebP or GIF - max 5MB. Shown full-screen behind the signup form. Leave empty for the default brand video.
             </p>
           </div>
 
@@ -311,7 +311,7 @@ function ContentTab({ campaign, onSaved }) {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Campaign dates control when the QR landing page accepts new signups. Code validity is separate — each signup gets their own timer.
+              Campaign dates control when the QR landing page accepts new signups. Code validity is separate - each signup gets their own timer.
             </p>
           </div>
 
@@ -447,7 +447,7 @@ function AnalyticsTab({ campaignId }) {
         prev.map((s) => (s.id === signup.id ? { ...s, ...j.signup, status: j.signup.status } : s)),
       )
       toast.success('Signup cancelled', {
-        description: `${signup.discount_code} is no longer valid — that email/phone can sign up again for a new code.`,
+        description: `${signup.discount_code} is no longer valid - that email/phone can sign up again for a new code.`,
       })
     } catch (e) {
       toast.error('Failed to cancel signup', { description: e.message })
@@ -533,7 +533,7 @@ function AnalyticsTab({ campaignId }) {
         <div className="rounded-lg border bg-muted/30 px-4 py-2 text-right">
           <p className="text-xs text-muted-foreground">Views → signups</p>
           <p className="text-lg font-bold tabular-nums">
-            {conversionRate != null ? `${conversionRate}%` : '—'}
+            {conversionRate != null ? `${conversionRate}%` : '-'}
           </p>
           <p className="text-[11px] text-muted-foreground">
             {signups.length} signup{signups.length === 1 ? '' : 's'} / {clicksCount} view{clicksCount === 1 ? '' : 's'}
@@ -600,8 +600,8 @@ function AnalyticsTab({ campaignId }) {
                   {signups.map((s) => (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">{s.name}</TableCell>
-                      <TableCell>{s.email || '—'}</TableCell>
-                      <TableCell>{s.phone || '—'}</TableCell>
+                      <TableCell>{s.email || '-'}</TableCell>
+                      <TableCell>{s.phone || '-'}</TableCell>
                       <TableCell className="font-mono text-xs">{s.discount_code}</TableCell>
                       <TableCell>
                         <Badge variant={statusBadgeVariant(s.status)}>
@@ -668,7 +668,7 @@ function AnalyticsTab({ campaignId }) {
                               </AlertDialogContent>
                             </AlertDialog>
                           ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <span className="text-xs text-muted-foreground">-</span>
                           )}
                         </TableCell>
                       )}

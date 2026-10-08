@@ -55,7 +55,7 @@ export async function POST(request) {
   const supabase = getServiceRoleSupabase();
   const { data: existing } = await supabase.from("users").select("id").eq("email", email).maybeSingle();
   if (existing) {
-    return NextResponse.json({ error: "Email already registered — try signing in" }, { status: 409 });
+    return NextResponse.json({ error: "Email already registered - try signing in" }, { status: 409 });
   }
 
   const password_hash = await bcrypt.hash(password, 10);

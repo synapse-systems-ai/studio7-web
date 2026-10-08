@@ -4,7 +4,7 @@ import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ACCESS_ROLES } from "@/lib/promotions-auth";
 import { PRODUCT_IMAGES_BUCKET, ensureProductImagesBucket } from "@/lib/product-images-storage";
 
-/** POST /api/admin/promotions/upload-image — hero image for a campaign landing page */
+/** POST /api/admin/promotions/upload-image - hero image for a campaign landing page */
 export async function POST(request) {
   const { error } = await authenticateWithRole(request, PROMOTIONS_ACCESS_ROLES);
   if (error) return error;

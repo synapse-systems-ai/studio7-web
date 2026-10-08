@@ -9,7 +9,7 @@ function buildSignupSmsBody(campaignInfo: {
   personal_url: string;
 }) {
   const { discount_percent, discount_code, valid_hours, personal_url } = campaignInfo;
-  return `Studio 7: You're on the guest list — ${discount_percent}% off, code ${discount_code}. Valid ${formatPromoValidDuration(valid_hours ?? 24)}. Details: ${personal_url}`;
+  return `Studio 7: You're on the guest list - ${discount_percent}% off, code ${discount_code}. Valid ${formatPromoValidDuration(valid_hours ?? 24)}. Details: ${personal_url}`;
 }
 
 export async function sendPromoSignupNotifications({

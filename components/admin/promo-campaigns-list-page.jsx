@@ -297,7 +297,7 @@ export function PromoCampaignsListPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="newest">Newest first</SelectItem>
-              <SelectItem value="name">Name A–Z</SelectItem>
+              <SelectItem value="name">Name A-Z</SelectItem>
               <SelectItem value="signups">Most signups</SelectItem>
             </SelectContent>
           </Select>

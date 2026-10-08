@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Tag, Users, LogOut, Home } from "lucide-react";
+import { Tag, Users, LogOut } from "lucide-react";
 import { Studio7Logo } from "@/components/brand/studio7-logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -55,17 +55,6 @@ export function AdminLayout({ children }) {
             </nav>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-zinc-700 bg-transparent text-zinc-200 hover:bg-zinc-800 hover:text-white"
-              asChild
-            >
-              <Link href="/">
-                <Home className="mr-1.5 h-4 w-4" />
-                <span className="hidden sm:inline">Site</span>
-              </Link>
-            </Button>
             {session?.user?.email ? (
               <Badge
                 variant="secondary"

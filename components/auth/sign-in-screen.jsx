@@ -45,7 +45,7 @@ export function SignInScreen({
               <span className="block text-violet-300">Studio 7 events</span>
             </h1>
             <p className="max-w-md text-base leading-relaxed text-zinc-300">
-              Your hub for campaigns, guest lists, and crew access — built for fast nights and clean handoffs.
+              Your hub for campaigns, guest lists, and crew access - built for fast nights and clean handoffs.
             </p>
           </div>
           <ul className="space-y-3">
@@ -172,24 +172,6 @@ export function SignInScreen({
                 )}
               </Button>
             </form>
-
-            <div className="relative py-1">
-              <div className="absolute inset-0 flex items-center" aria-hidden>
-                <span className="w-full border-t border-zinc-200" />
-              </div>
-              <p className="relative mx-auto w-fit bg-white px-3 text-xs uppercase tracking-wide text-zinc-400">
-                New to Studio 7?
-              </p>
-            </div>
-
-            <p className="text-center text-sm text-zinc-600">
-              <Link
-                href="/auth/signup"
-                className="font-semibold text-violet-700 underline-offset-2 hover:text-violet-900 hover:underline"
-              >
-                Create an account
-              </Link>
-            </p>
           </CardContent>
         </Card>
 

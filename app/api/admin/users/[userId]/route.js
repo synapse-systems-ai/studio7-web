@@ -4,6 +4,28 @@ import { authenticateWithRole } from "@/lib/api-auth";
 import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ADMIN_ONLY_ROLES } from "@/lib/promotions-auth";
 
+export async function DELETE(request, { params }) {
+  const { user: actor, error } = await authenticateWithRole(request, PROMOTIONS_ADMIN_ONLY_ROLES);
+  if (error) return error;
+
+  const { userId } = await params;
+  if (String(actor.id) === String(userId)) {
+    return NextResponse.json({ error: "You cannot remove your own account" }, { status: 403 });
+  }
+
+  const { data, error: updErr } = await getServiceRoleSupabase()
+    .from("users")
+    .update({ is_active: false })
+    .eq("id", userId)
+    .select("id, email, name")
+    .maybeSingle();
+
+  if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  return NextResponse.json({ success: true, user: data });
+}
+
 export async function PATCH(request, { params }) {
   const { error } = await authenticateWithRole(request, PROMOTIONS_ADMIN_ONLY_ROLES);
   if (error) return error;

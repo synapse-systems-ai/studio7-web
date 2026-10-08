@@ -12,12 +12,12 @@ const STUDIO7 = {
   publicApiPrefix: "/api/promo",
   listTitle: "Studio 7 campaigns",
   listSubtitle:
-    "QR campaigns for events and parties — capture guest signups and track them in the background.",
+    "QR campaigns for events and parties - capture guest signups and track them in the background.",
   defaultHeadline: "Join the Studio 7 guest list",
   defaultDescription: "Sign up for our next event or party.",
-  signupHint: "We'll confirm by email and SMS — you're on the list.",
+  signupHint: "We'll confirm by email and SMS - you're on the list.",
   submitLabel: (_campaign?: { discount_percent?: number | null }) => "Join the guest list",
-  signupSuccessDefault: "You're on the list — check your email and phone for details.",
+  signupSuccessDefault: "You're on the list - check your email and phone for details.",
   showStoresOnSuccess: false,
   use420Logo: false,
 } as const;
@@ -36,7 +36,7 @@ const DOCTOR420 = {
   signupHint: "Your code will be sent to your email and phone.",
   submitLabel: (campaign?: { discount_percent?: number | null }) =>
     `Get ${campaign?.discount_percent ?? 10}% off`,
-  signupSuccessDefault: "Check your email and phone — we've sent your discount code both ways.",
+  signupSuccessDefault: "Check your email and phone - we've sent your discount code both ways.",
   showStoresOnSuccess: true,
   use420Logo: true,
 } as const;

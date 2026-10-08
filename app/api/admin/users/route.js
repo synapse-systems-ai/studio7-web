@@ -14,6 +14,7 @@ export async function GET(request) {
     .from("users")
     .select("id, email, name, role, phone, is_active, created_at, last_login")
     .in("role", STUDIO7_ROLES)
+    .eq("is_active", true)
     .order("created_at", { ascending: false });
 
   if (listErr) return NextResponse.json({ error: listErr.message }, { status: 500 });

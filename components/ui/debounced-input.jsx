@@ -105,7 +105,7 @@ export const DebouncedInput = forwardRef(function DebouncedInput(
   );
 });
 
-/** Textarea variant — same debounce behaviour as DebouncedInput. */
+/** Textarea variant - same debounce behaviour as DebouncedInput. */
 export function DebouncedTextarea({ value, onChange, delay = 300, onBlur, onFocus, ...props }) {
   const { local, handleChange, handleFocus, handleBlur } = useDebouncedField({
     value,

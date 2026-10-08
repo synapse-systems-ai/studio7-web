@@ -37,7 +37,7 @@ export default function ResetPasswordForm() {
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Reset failed");
-      toast.success("Password updated — sign in with your new password");
+      toast.success("Password updated - sign in with your new password");
       router.push("/auth/signin");
     } catch (err) {
       toast.error(err.message || "Reset failed");

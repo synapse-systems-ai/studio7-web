@@ -33,7 +33,7 @@ export default function SignUpPage() {
       if (!r.ok) throw new Error(j.error || "Sign up failed");
       if (j.token) persistClientAuthToken(j.token);
       await mutate?.();
-      toast.success(j.bootstrap ? "Welcome — admin account ready" : "Account created — welcome");
+      toast.success(j.bootstrap ? "Welcome - admin account ready" : "Account created - welcome");
       router.replace("/admin/promotions");
     } catch (err) {
       toast.error(err.message || "Sign up failed");

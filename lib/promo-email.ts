@@ -51,7 +51,7 @@ export async function sendPromoConfirmationEmail(
   const greetingName = (name && String(name).trim()) || "there";
   const { headline, discount_percent, discount_code, terms_text, personal_url } = campaignInfo;
   const validLabel = formatPromoValidDuration(campaignInfo.valid_hours ?? 24);
-  const subject = `You're on the Studio 7 guest list — ${discount_percent}% off`;
+  const subject = `You're on the Studio 7 guest list - ${discount_percent}% off`;
   const safeCode = escapeHtml(discount_code);
   const safeUrl = escapeHtml(personal_url);
 
@@ -67,7 +67,7 @@ export async function sendPromoConfirmationEmail(
     <p style="margin:0 0 24px;text-align:center;">
       <span style="display:inline-block;background:#fafafa;color:#0a0a0a;padding:14px 28px;border-radius:8px;font-weight:700;font-size:20px;letter-spacing:2px;">${safeCode}</span>
     </p>
-    <p style="margin:0 0 24px;text-align:center;color:#d4d4d4;">${discount_percent}% off — valid for ${validLabel}.</p>
+    <p style="margin:0 0 24px;text-align:center;color:#d4d4d4;">${discount_percent}% off - valid for ${validLabel}.</p>
     <p style="margin:0 0 28px;text-align:center;">
       <a href="${safeUrl}" style="background:#fafafa;color:#0a0a0a;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:600;display:inline-block;">View your guest list pass</a>
     </p>
