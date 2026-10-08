@@ -1,8 +1,8 @@
 "use client";
 
-import { Studio7AuroraBackground } from "@/components/marketing/marketing-page-shell";
+import { Studio7SiteHeroBackground } from "@/components/promo/studio7-site-hero-background";
 
-/** Shared full-screen background (home, auth, promo loading). */
+/** Default full-screen background for Studio 7 QR promo pages. */
 export function Studio7FallbackHero() {
-  return <Studio7AuroraBackground />;
+  return <Studio7SiteHeroBackground />;
 }

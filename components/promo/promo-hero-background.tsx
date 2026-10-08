@@ -25,9 +25,9 @@ export function PromoHeroBackground({ campaign }: { campaign: Campaign }) {
       ) : (
         <Studio7FallbackHero />
       )}
-      {hero.type !== "gradient" && (
+      {hero.type !== "gradient" ? (
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-black/10 sm:from-black/50 sm:via-black/35 sm:to-black/25" />
-      )}
+      ) : null}
     </div>
   );
 }

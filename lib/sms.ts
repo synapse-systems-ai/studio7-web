@@ -16,7 +16,12 @@ function formatPhoneNumber(phoneNumber: string) {
 export async function sendRawSMS(phoneNumber: string, message: string) {
   try {
     if (!twilioClient) {
+      console.warn("[promo SMS] TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN not set");
       return { success: false as const, error: "Twilio not configured" };
+    }
+    if (!process.env.TWILIO_PHONE_NUMBER) {
+      console.warn("[promo SMS] TWILIO_PHONE_NUMBER not set");
+      return { success: false as const, error: "TWILIO_PHONE_NUMBER not configured" };
     }
     if (!phoneNumber) {
       return { success: false as const, error: "No phone number provided" };

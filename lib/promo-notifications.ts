@@ -9,7 +9,8 @@ function buildSignupSmsBody(campaignInfo: {
   personal_url: string;
 }) {
   const { discount_percent, discount_code, valid_hours, personal_url } = campaignInfo;
-  return `Studio 7: You're on the guest list - ${discount_percent}% off, code ${discount_code}. Valid ${formatPromoValidDuration(valid_hours ?? 24)}. Details: ${personal_url}`;
+  const validLabel = formatPromoValidDuration(valid_hours ?? 24);
+  return `Studio 7: ${discount_percent}% off - code ${discount_code}. Valid ${validLabel}. Guest pass & timer: ${personal_url}`;
 }
 
 export async function sendPromoSignupNotifications({
@@ -39,9 +40,7 @@ export async function sendPromoSignupNotifications({
   ]);
 
   const emailOk =
-    emailResult.status === "fulfilled" &&
-    emailResult.value?.success !== false &&
-    !("skipped" in emailResult.value && emailResult.value.skipped);
+    emailResult.status === "fulfilled" && emailResult.value?.success === true;
   const smsOk = smsResult.status === "fulfilled" && smsResult.value?.success === true;
 
   if (emailResult.status === "rejected") {
@@ -53,5 +52,21 @@ export async function sendPromoSignupNotifications({
     console.error("[promo signup] SMS failed:", smsResult.value?.error);
   }
 
-  return { emailOk, smsOk };
+  const emailError =
+    emailResult.status === "rejected"
+      ? String(emailResult.reason)
+      : emailResult.status === "fulfilled" && !emailOk
+        ? ("error" in emailResult.value && emailResult.value.error) ||
+          ("skipped" in emailResult.value && emailResult.value.skipped
+            ? "Email not configured (RESEND_API_KEY)"
+            : "Email send failed")
+        : undefined;
+  const smsError =
+    smsResult.status === "rejected"
+      ? String(smsResult.reason)
+      : smsResult.status === "fulfilled" && !smsOk
+        ? smsResult.value?.error || "SMS send failed"
+        : undefined;
+
+  return { emailOk, smsOk, emailError, smsError };
 }

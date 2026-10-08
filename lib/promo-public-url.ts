@@ -65,3 +65,13 @@ export function getPromoPersonalUrl(accessToken: string) {
   const base = typeof window !== "undefined" ? getPromoPublicBaseUrl() : getPromoPublicBaseUrlServer();
   return `${stripTrailingSlash(base)}/promo/view/${accessToken}`;
 }
+
+/** Absolute URL for logo in Resend HTML (must be publicly reachable). */
+export function getPromoEmailLogoUrl() {
+  return `${getPromoPublicBaseUrlServer()}/studio7/site/logo.png`;
+}
+
+/** Hero cover image for promo confirmation emails (studio7rsa.com photography). */
+export function getPromoEmailCoverImageUrl() {
+  return `${getPromoPublicBaseUrlServer()}/studio7/site/hero/photo-1.jpg`;
+}

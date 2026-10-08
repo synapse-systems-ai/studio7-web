@@ -220,21 +220,40 @@ export async function promoSlugPOST(
     personal_url: personalUrl,
   };
 
-  const { emailOk, smsOk } = await sendPromoSignupNotifications({ name, email, phone, campaignInfo });
+  const { emailOk, smsOk, emailError, smsError } = await sendPromoSignupNotifications({
+    name,
+    email,
+    phone,
+    campaignInfo,
+  });
   if (!emailOk && !smsOk) {
-    console.error("[promo signup] confirmation not delivered", { email, phone, signupId: signup.id });
+    console.error("[promo signup] confirmation not delivered", {
+      email,
+      phone,
+      signupId: signup.id,
+      emailError,
+      smsError,
+    });
   } else if (!emailOk || !smsOk) {
-    console.warn("[promo signup] partial delivery", { emailOk, smsOk, email, phone, signupId: signup.id });
+    console.warn("[promo signup] partial delivery", {
+      emailOk,
+      smsOk,
+      email,
+      phone,
+      signupId: signup.id,
+      emailError,
+      smsError,
+    });
   }
 
   const deliveryNote =
-    !emailOk && !smsOk
-      ? "Your code is saved below - we couldn't send email or SMS; save it or use your personal link."
-      : !emailOk
-        ? "Your code is below - we couldn't email it, but SMS should have been sent."
-        : !smsOk
-          ? "Your code is below - we couldn't text it, but email should have been sent."
-          : brand.signupSuccessDefault;
+    emailOk && smsOk
+      ? brand.signupSuccessDefault
+      : emailOk && !smsOk
+        ? "We emailed your code — check spam and Promotions if you don't see it. We couldn't text you; use your guest pass link below."
+        : !emailOk && smsOk
+          ? "We texted your code. Email didn't go through — save your code and guest pass link below."
+          : "Save your code and open your guest pass link below — we couldn't send email or text.";
 
   return NextResponse.json({
     success: true,

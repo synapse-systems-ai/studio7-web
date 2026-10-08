@@ -4,7 +4,8 @@ import { use, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { PromoHeroBackground } from "@/components/promo/promo-hero-background";
 import { PromoSuccessCard } from "@/components/promo/promo-success-card";
-import { getPromoBrand } from "@/lib/promo-brands";
+import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
+import { STUDIO7_SITE_LOGO } from "@/lib/studio7-site-assets";
 import type { PromoSignupStatus } from "@/lib/promo-signup";
 
 function PromoShell({
@@ -89,7 +90,16 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
       <div className="flex h-full w-full items-center justify-center p-3 sm:p-4">
         <div className="mx-auto my-auto w-full max-w-md rounded-2xl bg-white/92 px-4 py-4 shadow-2xl backdrop-blur-md sm:space-y-5 sm:bg-white sm:px-5 sm:py-7">
           <div className="mb-4 flex flex-col items-center gap-2 text-center">
-            <p className="text-xl font-bold tracking-tight text-gray-900">{brand.label}</p>
+            {brand.id === PROMO_BRAND_STUDIO7 ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={STUDIO7_SITE_LOGO}
+                alt="Studio 7"
+                className="h-11 w-auto max-w-[min(100%,200px)] object-contain"
+              />
+            ) : (
+              <p className="text-xl font-bold tracking-tight text-gray-900">{brand.label}</p>
+            )}
             <h1 className="text-xl font-bold text-gray-900">{campaign?.headline || "Your promo"}</h1>
             {campaign?.description && <p className="text-sm text-gray-600">{campaign.description}</p>}
           </div>

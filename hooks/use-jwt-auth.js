@@ -28,6 +28,8 @@ export function JWTAuthProvider({ children }) {
   const redirectingRef = useRef(false);
   /** Ignores stale /api/auth/me results when multiple checks run (Strict Mode, focus, etc.) */
   const authCheckGenerationRef = useRef(0);
+  const userRef = useRef(null);
+  userRef.current = user;
 
   const handleExpiredSession = useCallback(() => {
     if (redirectingRef.current) return;
@@ -36,7 +38,7 @@ export function JWTAuthProvider({ children }) {
     router.push("/auth/signin?error=session_expired");
   }, [router]);
 
-  const checkAuth = useCallback(async () => {
+  const checkAuth = useCallback(async ({ silent = false } = {}) => {
     const routePath = resolvePathnameForStaffAuthGuard(pathname);
     if (isPublicGuestPath(routePath)) {
       // Public routes don't require staff JWT; keep any existing session for post-login navigation.
@@ -46,7 +48,9 @@ export function JWTAuthProvider({ children }) {
       return false;
     }
 
-    setLoading(true);
+    if (!silent) {
+      setLoading(true);
+    }
     const generation = ++authCheckGenerationRef.current;
     try {
       const response = await fetchWithTimeout("/api/auth/me", {
@@ -82,7 +86,7 @@ export function JWTAuthProvider({ children }) {
       console.error("Auth check failed:", error);
       return false;
     } finally {
-      if (generation === authCheckGenerationRef.current) {
+      if (!silent && generation === authCheckGenerationRef.current) {
         setLoading(false);
       }
     }
@@ -101,9 +105,9 @@ export function JWTAuthProvider({ children }) {
     }
   }, []);
 
-  // Initial auth check on mount
+  // Auth check on mount and when staff route changes (silent if already signed in)
   useEffect(() => {
-    checkAuth();
+    checkAuth({ silent: userRef.current != null });
   }, [checkAuth]);
 
   // Periodic auth polling - catches expired sessions
@@ -111,7 +115,7 @@ export function JWTAuthProvider({ children }) {
     if (!user) return;
 
     const interval = setInterval(() => {
-      checkAuth();
+      checkAuth({ silent: true });
     }, AUTH_POLL_INTERVAL);
 
     return () => clearInterval(interval);
@@ -132,7 +136,7 @@ export function JWTAuthProvider({ children }) {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible" && user) {
-        checkAuth().then((ok) => {
+        checkAuth({ silent: true }).then((ok) => {
           if (ok) refreshToken();
         });
       }

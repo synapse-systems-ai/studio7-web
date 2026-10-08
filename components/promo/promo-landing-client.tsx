@@ -2,12 +2,25 @@
 
 import { use, useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Studio7Logo } from "@/components/brand/studio7-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PromoHeroBackground } from "@/components/promo/promo-hero-background";
 import { PromoSuccessCard } from "@/components/promo/promo-success-card";
-import { getPromoBrand } from "@/lib/promo-brands";
+import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
+import { cn } from "@/lib/utils";
+
+const promoCardClass =
+  "mx-auto my-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/50 bg-white/95 shadow-[0_12px_48px_rgba(0,0,0,0.35)] ring-1 ring-black/5 backdrop-blur-xl sm:bg-white";
+
+const promoFieldClass =
+  "h-10 border-zinc-200 bg-white text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:border-zinc-900 focus-visible:ring-zinc-900/15 sm:h-11";
+
+const promoLabelClass = "text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-600";
+
+const promoSubmitClass =
+  "h-12 w-full rounded-xl bg-zinc-950 text-xs font-bold uppercase tracking-[0.2em] text-white shadow-md hover:bg-zinc-800 disabled:opacity-60 sm:text-sm";
 
 type PublicCampaign = {
   headline?: string;
@@ -40,6 +53,9 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
     discount_code?: string;
     expires_at?: string;
     valid_hours?: number;
+    personal_url?: string;
+    email_sent?: boolean;
+    sms_sent?: boolean;
     stores?: unknown[];
   } | null>(null);
 
@@ -137,9 +153,9 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
     return (
       <PromoShell campaign={null}>
         <div className="relative z-10 flex h-full items-center justify-center p-3 sm:p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white/95 px-5 py-6 text-center shadow-2xl backdrop-blur-md sm:bg-white">
-            <p className="text-lg font-medium">This promotion isn&apos;t available.</p>
-            <p className="mt-2 text-sm text-gray-600">{error}</p>
+          <div className={cn(promoCardClass, "px-6 py-8 text-center")}>
+            <p className="text-lg font-semibold text-zinc-900">This promotion isn&apos;t available.</p>
+            <p className="mt-2 text-sm text-zinc-600">{error}</p>
           </div>
         </div>
       </PromoShell>
@@ -149,110 +165,126 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
   return (
     <PromoShell campaign={campaign}>
       <div className="relative z-10 flex h-full w-full items-center justify-center overflow-y-auto p-3 sm:p-4">
-        <div className="mx-auto my-auto w-full max-w-md rounded-2xl bg-white/92 px-4 py-4 shadow-2xl backdrop-blur-md sm:space-y-5 sm:bg-white sm:px-5 sm:py-7">
-          <div className="flex flex-col items-center gap-2 text-center sm:gap-3">
-            <p className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">{brand.label}</p>
-            <div className="min-w-0">
-              <h1 className="text-lg font-bold leading-tight sm:text-2xl md:text-3xl">{headline}</h1>
-              {campaign?.description && (
-                <p className="mt-1 text-xs text-gray-600 sm:text-sm">{campaign.description}</p>
+        <div className={promoCardClass}>
+          <div className="border-b border-zinc-100 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
+            {brand.id === PROMO_BRAND_STUDIO7 ? (
+              <Studio7Logo size={80} priority className="mx-auto ring-zinc-200/80" />
+            ) : (
+              <p className="text-lg font-bold tracking-tight text-zinc-900 sm:text-xl">{brand.label}</p>
+            )}
+            {brand.id === PROMO_BRAND_STUDIO7 ? (
+              <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.35em] text-zinc-500">Guest list</p>
+            ) : null}
+            <h1
+              className={cn(
+                "text-xl font-bold leading-snug tracking-tight text-zinc-950 sm:text-2xl",
+                brand.id === PROMO_BRAND_STUDIO7 ? "mt-2" : "mt-4",
               )}
-            </div>
+            >
+              {headline}
+            </h1>
+            {campaign?.description ? (
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-zinc-600">{campaign.description}</p>
+            ) : null}
           </div>
 
-          {success ? (
-            <PromoSuccessCard
-              message={success.message}
-              discountCode={success.discount_code}
-              expiresAt={success.expires_at}
-              validHours={success.valid_hours}
-              stores={successStores}
-            />
-          ) : (
-            <form
-              onSubmit={handleSubmit}
-              className="mt-4 space-y-3 sm:mt-0 sm:space-y-4 sm:rounded-xl sm:border sm:p-5"
-            >
-              <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="promo-first-name" className="text-xs sm:text-sm">
-                      First name <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="promo-first-name"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="First name"
-                      required
-                      autoComplete="given-name"
-                      className="h-9 text-sm sm:h-10"
-                    />
+          <div className="px-4 py-5 sm:px-6 sm:py-6">
+            {success ? (
+              <PromoSuccessCard
+                message={success.message}
+                discountCode={success.discount_code}
+                expiresAt={success.expires_at}
+                validHours={success.valid_hours}
+                personalUrl={success.personal_url}
+                stores={successStores}
+              />
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-4 sm:p-5">
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="promo-first-name" className={promoLabelClass}>
+                        First name <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="promo-first-name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="First name"
+                        required
+                        autoComplete="given-name"
+                        className={promoFieldClass}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="promo-last-name" className={promoLabelClass}>
+                        Surname <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="promo-last-name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="Surname"
+                        required
+                        autoComplete="family-name"
+                        className={promoFieldClass}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="promo-last-name" className="text-xs sm:text-sm">
-                      Surname <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="promo-last-name"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Surname"
-                      required
-                      autoComplete="family-name"
-                      className="h-9 text-sm sm:h-10"
-                    />
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="promo-email" className={promoLabelClass}>
+                        Email <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="promo-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        required
+                        autoComplete="email"
+                        className={promoFieldClass}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="promo-phone" className={promoLabelClass}>
+                        Phone <span className="text-red-600">*</span>
+                      </Label>
+                      <Input
+                        id="promo-phone"
+                        type="tel"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="082 123 4567"
+                        autoComplete="tel"
+                        className={promoFieldClass}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="promo-email" className="text-xs sm:text-sm">
-                      Email <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="promo-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      required
-                      autoComplete="email"
-                      className="h-9 text-sm sm:h-10"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="promo-phone" className="text-xs sm:text-sm">
-                      Phone <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="promo-phone"
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="082 123 4567"
-                      autoComplete="tel"
-                      className="h-9 text-sm sm:h-10"
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <p className="text-center text-[11px] text-gray-500 sm:text-xs">{brand.signupHint}</p>
+                <p className="text-center text-[11px] leading-relaxed text-zinc-500 sm:text-xs">{brand.signupHint}</p>
 
-              {error && <p className="text-xs text-red-600 sm:text-sm">{error}</p>}
+                {error ? (
+                  <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-xs text-red-800 sm:text-sm">
+                    {error}
+                  </p>
+                ) : null}
 
-              <Button type="submit" className="h-10 w-full text-sm sm:h-11 sm:text-base" disabled={submitting}>
-                {submitting ? "Submitting…" : submitLabel}
-              </Button>
+                <Button type="submit" className={promoSubmitClass} disabled={submitting}>
+                  {submitting ? "Submitting…" : submitLabel}
+                </Button>
 
-              {campaign?.terms_text && (
-                <p className="text-center text-[10px] leading-tight text-gray-500 sm:text-[11px]">
-                  {campaign.terms_text}
-                </p>
-              )}
-            </form>
-          )}
+                {campaign?.terms_text ? (
+                  <p className="text-center text-[10px] leading-relaxed text-zinc-500 sm:text-[11px]">
+                    {campaign.terms_text}
+                  </p>
+                ) : null}
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </PromoShell>
