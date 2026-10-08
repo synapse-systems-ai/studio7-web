@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { AdminBackLink } from "@/components/admin/admin-back-link";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, Plus, Search, Tag, Trash2, Users } from "lucide-react";
+import { ArrowRight, Plus, Search, Tag, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { usePromoBrand } from "@/lib/promo-brand-context";
 
@@ -254,25 +255,16 @@ export function PromoCampaignsListPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-bold tracking-tight">{brand.listTitle}</h1>
             <p className="text-muted-foreground">{brand.listSubtitle}</p>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-center">
             <CreateCampaignDialog
               onCreated={(c) => c && router.push(`${brand.adminBasePath}/${c.id}`)}
             />
-            <Link
-              href="/admin"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "default" }),
-                "inline-flex h-9 shrink-0 items-center whitespace-nowrap px-4",
-              )}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-              Back
-            </Link>
+            <AdminBackLink href="/admin" label="Back to admin" shortLabel="Back" />
           </div>
         </div>
 

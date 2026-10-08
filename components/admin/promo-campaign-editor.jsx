@@ -1,14 +1,13 @@
 'use client'
 
 import { use, useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { DynamicQrCode, useDynamicQrDownload } from '@/components/qr/dynamic-qr-code'
 import { getPromoCampaignPreviewImage } from '@/lib/promo-brand-image'
 import { formatPromoValidDuration } from '@/lib/promo-signup'
 import { AdminLayout } from '@/components/admin/admin-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { AdminBackLink } from '@/components/admin/admin-back-link'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DebouncedInput } from '@/components/ui/debounced-input'
 import { Label } from '@/components/ui/label'
@@ -29,7 +28,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import {
-  ArrowLeft,
   Download,
   ExternalLink,
   ImagePlus,
@@ -725,21 +723,12 @@ export default function PromotionCampaignPage({ params }) {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-bold tracking-tight">{campaign?.name || 'Campaign'}</h1>
             <p className="text-muted-foreground">Edit the landing page and view analytics.</p>
           </div>
-          <Link
-            href={brand.adminBasePath}
-            className={cn(
-              buttonVariants({ variant: 'outline', size: 'default' }),
-              'inline-flex h-9 shrink-0 items-center whitespace-nowrap px-4',
-            )}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-            Back to {brand.listTitle}
-          </Link>
+          <AdminBackLink href={brand.adminBasePath} label={`Back to ${brand.listTitle}`} />
         </div>
 
         {loading ? (
