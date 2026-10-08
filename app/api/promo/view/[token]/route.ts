@@ -15,7 +15,7 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
   const { data: signup, error } = await supabase
     .from("promo_signups")
     .select(
-      "id, name, discount_code, redeemed_at, cancelled_at, expires_at, created_at, promo_campaigns(headline, description, discount_percent, terms_text, slug, image_url, code_valid_hours, brand)",
+      "id, name, discount_code, redeemed_at, cancelled_at, expires_at, created_at, promo_campaigns(headline, description, discount_percent, terms_text, ticket_url, slug, image_url, code_valid_hours, brand)",
     )
     .eq("access_token", token)
     .maybeSingle();
@@ -28,6 +28,7 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
     description?: string;
     discount_percent?: number;
     terms_text?: string;
+    ticket_url?: string | null;
     slug?: string;
     image_url?: string;
     code_valid_hours?: number;
@@ -53,6 +54,7 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
       description: campaignRaw.description,
       discount_percent: campaignRaw.discount_percent,
       terms_text: campaignRaw.terms_text,
+      ticket_url: campaignRaw.ticket_url,
       slug: campaignRaw.slug,
       image_url: campaignRaw.image_url,
       code_valid_hours: campaignRaw.code_valid_hours,

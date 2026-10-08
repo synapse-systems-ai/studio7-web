@@ -45,6 +45,7 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
       terms_text?: string;
       image_url?: string | null;
       code_valid_hours?: number;
+      ticket_url?: string | null;
     };
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +99,7 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
         <div className={promoCardClass}>
           <div className="border-b border-zinc-800 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
             {brand.id === PROMO_BRAND_STUDIO7 ? (
-              <Studio7Logo size={80} priority className="mx-auto ring-zinc-600/80 invert" />
+              <Studio7Logo size={96} priority variant="promo" className="mx-auto" />
             ) : (
               <p className="text-lg font-bold tracking-tight text-white">{brand.label}</p>
             )}
@@ -130,6 +131,7 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
               validHours={campaign?.code_valid_hours}
               status={signup.status}
               showStatus
+              ticketUrl={campaign?.ticket_url}
             />
 
             {brand.id === PROMO_BRAND_STUDIO7 ? (

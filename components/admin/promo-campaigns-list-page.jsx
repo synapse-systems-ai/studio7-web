@@ -37,6 +37,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ArrowRight, Images, Plus, Search, Tag, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { usePromoBrand } from "@/lib/promo-brand-context";
@@ -261,9 +269,19 @@ function CampaignCard({ campaign, onDeleted }) {
         </Link>
       </CardHeader>
       <CardContent>
-        <Link href={detailHref} className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4" />
-          {campaign.signup_count} signup{campaign.signup_count === 1 ? "" : "s"}
+        <Link href={detailHref} className="space-y-1 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 shrink-0" />
+            <span>
+              {campaign.claimed_count ?? campaign.signup_count ?? 0} claimed
+              {(campaign.redeemed_count ?? 0) > 0 ? ` · ${campaign.redeemed_count} redeemed` : ""}
+            </span>
+          </div>
+          {campaign.promo_code ? (
+            <p className="font-mono text-xs text-foreground/80">Code: {campaign.promo_code}</p>
+          ) : (
+            <p className="text-xs text-amber-700 dark:text-amber-400">No promo code set</p>
+          )}
         </Link>
       </CardContent>
     </Card>
@@ -278,16 +296,23 @@ export function PromoCampaignsListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sort, setSort] = useState("newest");
+  const [promoUsage, setPromoUsage] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${brand.adminApiBase}?brand=${encodeURIComponent(brand.id)}`, {
-        credentials: "include",
-      });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Failed to load campaigns");
+      const [campRes, usageRes] = await Promise.all([
+        fetch(`${brand.adminApiBase}?brand=${encodeURIComponent(brand.id)}`, { credentials: "include" }),
+        fetch(`${brand.adminApiBase}/promo-usage?brand=${encodeURIComponent(brand.id)}`, {
+          credentials: "include",
+        }),
+      ]);
+      const j = await campRes.json();
+      const usageJson = await usageRes.json();
+      if (!campRes.ok) throw new Error(j.error || "Failed to load campaigns");
+      if (!usageRes.ok) throw new Error(usageJson.error || "Failed to load promo usage");
       setCampaigns(j.campaigns || []);
+      setPromoUsage(usageJson.promo_usage || []);
     } catch (e) {
       toast.error("Failed to load campaigns", { description: e.message });
     } finally {
@@ -308,7 +333,8 @@ export function PromoCampaignsListPage() {
       return (
         c.name?.toLowerCase().includes(q) ||
         c.headline?.toLowerCase().includes(q) ||
-        c.slug?.toLowerCase().includes(q)
+        c.slug?.toLowerCase().includes(q) ||
+        c.promo_code?.toLowerCase().includes(q)
       );
     });
     list = [...list].sort((a, b) => {
@@ -375,6 +401,41 @@ export function PromoCampaignsListPage() {
             </SelectContent>
           </Select>
         </div>
+
+        {!loading && promoUsage.length > 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Promo code usage</CardTitle>
+              <CardDescription>
+                How many people claimed each code (QR signup) and how many you marked redeemed at Howler.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Promo code</TableHead>
+                    <TableHead>Campaigns</TableHead>
+                    <TableHead className="text-right">Claimed</TableHead>
+                    <TableHead className="text-right">Redeemed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {promoUsage.map((row) => (
+                    <TableRow key={row.promo_code || row.label}>
+                      <TableCell className="font-mono font-medium">{row.label}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {row.campaigns?.map((c) => c.name).join(", ") || "—"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">{row.claimed}</TableCell>
+                      <TableCell className="text-right tabular-nums">{row.redeemed}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        ) : null}
 
         {loading ? (
           <p className="text-sm text-muted-foreground py-10 text-center">Loading…</p>

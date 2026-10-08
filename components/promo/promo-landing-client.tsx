@@ -28,6 +28,7 @@ type PublicCampaign = {
   image_url?: string | null;
   campaign_format?: string | null;
   instagram_username?: string | null;
+  ticket_url?: string | null;
 };
 
 function PromoShell({ campaign, children }: { campaign: PublicCampaign | null; children: React.ReactNode }) {
@@ -54,6 +55,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
     expires_at?: string;
     valid_hours?: number;
     personal_url?: string;
+    ticket_url?: string | null;
     email_sent?: boolean;
     stores?: unknown[];
   } | null>(null);
@@ -189,7 +191,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
         <div className={promoCardClass}>
           <div className="border-b border-zinc-800 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
             {brand.id === PROMO_BRAND_STUDIO7 ? (
-              <Studio7Logo size={80} priority className="mx-auto ring-zinc-600/80 invert" />
+              <Studio7Logo size={96} priority variant="promo" className="mx-auto" />
             ) : (
               <p className="text-lg font-bold tracking-tight text-white sm:text-xl">{brand.label}</p>
             )}
@@ -219,6 +221,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
                 expiresAt={success.expires_at}
                 validHours={success.valid_hours}
                 stores={successStores}
+                ticketUrl={success.ticket_url ?? campaign?.ticket_url}
               />
             ) : isInstagram ? (
               <PromoInstagramSignupForm

@@ -1,15 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Copy, ExternalLink, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { promoSubmitClass } from "@/components/promo/promo-card-theme";
+import { cn } from "@/lib/utils";
 import {
   formatPromoStatusLabel,
   formatPromoValidDuration,
   type PromoSignupStatus,
 } from "@/lib/promo-signup";
 
-function PromoCountdown({ expiresAt, validHours }: { expiresAt?: string | null; validHours?: number }) {
+function PromoCountdown({
+  expiresAt,
+  validHours,
+  ticketCheckout,
+}: {
+  expiresAt?: string | null;
+  validHours?: number;
+  ticketCheckout?: boolean;
+}) {
   const [remaining, setRemaining] = useState<{
     hours: number;
     minutes: number;
@@ -55,7 +66,53 @@ function PromoCountdown({ expiresAt, validHours }: { expiresAt?: string | null; 
           {pad(remaining.hours)}:{pad(remaining.minutes)}:{pad(remaining.seconds)}
         </p>
       )}
-      <p className="mt-1 text-[11px] text-amber-300/90">Use your code in-store before the timer runs out.</p>
+      <p className="mt-1 text-[11px] text-amber-300/90">
+        {ticketCheckout
+          ? "Paste your code at checkout on Howler before the timer runs out."
+          : "Use your code in-store before the timer runs out."}
+      </p>
+    </div>
+  );
+}
+
+function PromoCodeCopy({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2200);
+    } catch {
+      try {
+        const input = document.createElement("textarea");
+        input.value = code;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2200);
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+
+  return (
+    <div className="mt-3 space-y-2">
+      <button
+        type="button"
+        onClick={() => void copy()}
+        className="w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-3 text-left transition-colors hover:border-zinc-500 hover:bg-zinc-900"
+      >
+        <p className="text-[10px] uppercase tracking-wide text-zinc-500">Your promo code</p>
+        <p className="mt-1 font-mono text-lg font-bold tracking-wide text-white">{code}</p>
+        <p className="mt-2 flex items-center justify-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+          <Copy className="h-3.5 w-3.5" />
+          {copied ? "Copied!" : "Tap to copy"}
+        </p>
+      </button>
     </div>
   );
 }
@@ -68,6 +125,7 @@ export function PromoSuccessCard({
   status,
   headline,
   showStatus = false,
+  ticketUrl,
 }: {
   message?: string | null;
   discountCode?: string | null;
@@ -77,11 +135,13 @@ export function PromoSuccessCard({
   status?: PromoSignupStatus;
   headline?: string;
   showStatus?: boolean;
+  ticketUrl?: string | null;
 }) {
   const isUsed = status === "used";
   const isExpired = status === "expired";
   const isCancelled = status === "cancelled";
   const isInactive = isUsed || isExpired || isCancelled;
+  const checkoutUrl = ticketUrl?.trim() || null;
 
   return (
     <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/35 p-4 text-center sm:mt-0 sm:p-6">
@@ -108,13 +168,24 @@ export function PromoSuccessCard({
           </Badge>
         </div>
       )}
-      {discountCode && (
+      {discountCode && !isInactive ? <PromoCodeCopy code={discountCode} /> : null}
+      {discountCode && isInactive ? (
         <div className="mt-3 rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-zinc-500">Your code</p>
+          <p className="text-[10px] uppercase tracking-wide text-zinc-500">Code</p>
           <p className="font-mono text-lg font-bold text-white">{discountCode}</p>
         </div>
+      ) : null}
+      {!isInactive && checkoutUrl ? (
+        <Button asChild className={cn(promoSubmitClass, "mt-4 w-full")}>
+          <a href={checkoutUrl} target="_blank" rel="noopener noreferrer">
+            Redeem code
+            <ExternalLink className="ml-2 h-4 w-4" />
+          </a>
+        </Button>
+      ) : null}
+      {!isInactive && (
+        <PromoCountdown expiresAt={expiresAt} validHours={validHours} ticketCheckout={Boolean(checkoutUrl)} />
       )}
-      {!isInactive && <PromoCountdown expiresAt={expiresAt} validHours={validHours} />}
     </div>
   );
 }

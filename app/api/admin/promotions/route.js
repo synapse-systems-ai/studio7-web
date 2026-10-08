@@ -9,6 +9,7 @@ import {
 } from "@/lib/promo-campaign-format";
 import { normalizeInstagramHandle } from "@/lib/promo-instagram";
 import { getSupabaseProjectLabel } from "@/lib/supabase-project-label";
+import { summarizePromoSignups } from "@/lib/promo-usage-stats";
 
 function parseBrand(value) {
   return value === PROMO_BRAND_STUDIO7 ? PROMO_BRAND_STUDIO7 : PROMO_BRAND_420;
@@ -30,15 +31,33 @@ export async function GET(request) {
 
   if (campErr) return NextResponse.json({ error: campErr.message }, { status: 500 });
 
-  const { data: signupCounts } = await supabase.from("promo_signups").select("campaign_id");
+  const campaignIds = (campaigns || []).map((c) => c.id);
+  let signups = [];
+  if (campaignIds.length) {
+    const { data: signupRows, error: signupsErr } = await supabase
+      .from("promo_signups")
+      .select("campaign_id, redeemed_at, cancelled_at, expires_at, created_at")
+      .in("campaign_id", campaignIds);
+    if (signupsErr) return NextResponse.json({ error: signupsErr.message }, { status: 500 });
+    signups = signupRows || [];
+  }
 
-  const countsById = {};
-  for (const row of signupCounts || []) {
-    countsById[row.campaign_id] = (countsById[row.campaign_id] || 0) + 1;
+  const signupsByCampaign = {};
+  for (const row of signups) {
+    if (!signupsByCampaign[row.campaign_id]) signupsByCampaign[row.campaign_id] = [];
+    signupsByCampaign[row.campaign_id].push(row);
   }
 
   return NextResponse.json({
-    campaigns: (campaigns || []).map((c) => ({ ...c, signup_count: countsById[c.id] || 0 })),
+    campaigns: (campaigns || []).map((c) => {
+      const stats = summarizePromoSignups(signupsByCampaign[c.id] || []);
+      return {
+        ...c,
+        signup_count: stats.total,
+        claimed_count: stats.claimed,
+        redeemed_count: stats.redeemed,
+      };
+    }),
   });
 }
 

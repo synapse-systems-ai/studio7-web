@@ -28,6 +28,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import {
+  CheckCircle2,
   Download,
   ExternalLink,
   ImagePlus,
@@ -100,6 +101,8 @@ function ContentTab({ campaign, onSaved }) {
     starts_at: toDatetimeLocal(campaign.starts_at),
     ends_at: toDatetimeLocal(campaign.ends_at),
     instagram_username: campaign.instagram_username || 'studio7.rsa',
+    ticket_url: campaign.ticket_url || '',
+    promo_code: campaign.promo_code || '',
   })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -145,6 +148,8 @@ function ContentTab({ campaign, onSaved }) {
         starts_at: form.starts_at || null,
         ends_at: form.ends_at || null,
         instagram_username: form.instagram_username,
+        ticket_url: form.ticket_url.trim() || null,
+        promo_code: form.promo_code.trim().toUpperCase() || null,
       }
       const r = await fetch(`${adminApi}/${campaign.id}`, {
         method: 'PATCH',
@@ -216,6 +221,33 @@ function ContentTab({ campaign, onSaved }) {
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="Scan, sign up, and get 10% off your next order at The 420 Doctor."
             />
+          </div>
+          <div className="rounded-lg border p-4 space-y-4">
+            <div>
+              <p className="text-sm font-medium">Tickets &amp; promo code</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Guests verify on Instagram, copy this code, then open Howler to redeem.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Promo code</Label>
+              <Input
+                value={form.promo_code}
+                onChange={(e) => setForm((f) => ({ ...f, promo_code: e.target.value.toUpperCase() }))}
+                placeholder="STUDIO10"
+                className="font-mono uppercase"
+              />
+              <p className="text-xs text-muted-foreground">Same code for everyone on this campaign (Howler checkout).</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Howler ticket URL</Label>
+              <Input
+                type="url"
+                value={form.ticket_url}
+                onChange={(e) => setForm((f) => ({ ...f, ticket_url: e.target.value }))}
+                placeholder="https://howler.co.za/…"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Landing page image</Label>
@@ -422,6 +454,9 @@ function AnalyticsTab({ campaignId }) {
   const [cancellingId, setCancellingId] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [resendingId, setResendingId] = useState(null)
+  const [redeemingId, setRedeemingId] = useState(null)
+  const [promoCode, setPromoCode] = useState(null)
+  const [promoStats, setPromoStats] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -444,6 +479,8 @@ function AnalyticsTab({ campaignId }) {
       setSignups(j.signups || [])
       setClicksCount(j.clicks_count ?? 0)
       setConversionRate(j.conversion_rate)
+      setPromoCode(j.promo_code || null)
+      setPromoStats(j.promo_stats || null)
     } catch (e) {
       toast.error('Failed to load analytics', { description: e.message })
     } finally {
@@ -494,6 +531,33 @@ function AnalyticsTab({ campaignId }) {
       toast.error('Failed to resend', { description: e.message })
     } finally {
       setResendingId(null)
+    }
+  }
+
+  const redeemSignup = async (signup) => {
+    setRedeemingId(signup.id)
+    try {
+      const r = await fetch(`${adminApi}/${campaignId}/signups/${signup.id}/redeem`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const j = await r.json()
+      if (!r.ok) throw new Error(j.error || 'Failed to mark redeemed')
+      setSignups((prev) =>
+        prev.map((s) => (s.id === signup.id ? { ...s, ...j.signup, status: j.signup.status } : s)),
+      )
+      if (promoStats) {
+        setPromoStats({
+          ...promoStats,
+          redeemed: (promoStats.redeemed || 0) + 1,
+          ongoing: Math.max(0, (promoStats.ongoing || 0) - 1),
+        })
+      }
+      toast.success('Marked as redeemed', { description: `${signup.discount_code} used at checkout.` })
+    } catch (e) {
+      toast.error('Could not mark redeemed', { description: e.message })
+    } finally {
+      setRedeemingId(null)
     }
   }
 
@@ -551,14 +615,34 @@ function AnalyticsTab({ campaignId }) {
             </Button>
           ))}
         </div>
-        <div className="rounded-lg border bg-muted/30 px-4 py-2 text-right">
-          <p className="text-xs text-muted-foreground">Views → signups</p>
-          <p className="text-lg font-bold tabular-nums">
-            {conversionRate != null ? `${conversionRate}%` : '-'}
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            {signups.length} signup{signups.length === 1 ? '' : 's'} / {clicksCount} view{clicksCount === 1 ? '' : 's'}
-          </p>
+        <div className="flex flex-wrap gap-2">
+          {promoCode ? (
+            <div className="rounded-lg border bg-muted/30 px-4 py-2">
+              <p className="text-xs text-muted-foreground">Promo code</p>
+              <p className="font-mono text-lg font-bold">{promoCode}</p>
+            </div>
+          ) : null}
+          {promoStats ? (
+            <>
+              <div className="rounded-lg border bg-muted/30 px-4 py-2 text-right">
+                <p className="text-xs text-muted-foreground">Claimed</p>
+                <p className="text-lg font-bold tabular-nums">{promoStats.claimed}</p>
+              </div>
+              <div className="rounded-lg border bg-muted/30 px-4 py-2 text-right">
+                <p className="text-xs text-muted-foreground">Redeemed</p>
+                <p className="text-lg font-bold tabular-nums">{promoStats.redeemed}</p>
+              </div>
+            </>
+          ) : null}
+          <div className="rounded-lg border bg-muted/30 px-4 py-2 text-right">
+            <p className="text-xs text-muted-foreground">Views → signups</p>
+            <p className="text-lg font-bold tabular-nums">
+              {conversionRate != null ? `${conversionRate}%` : '-'}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {signups.length} signup{signups.length === 1 ? '' : 's'} / {clicksCount} view{clicksCount === 1 ? '' : 's'}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -637,7 +721,17 @@ function AnalyticsTab({ campaignId }) {
                       {isAdmin && (
                         <TableCell>
                           {s.status === 'ongoing' ? (
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8"
+                                disabled={redeemingId === s.id}
+                                onClick={() => redeemSignup(s)}
+                              >
+                                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                                {redeemingId === s.id ? 'Saving…' : 'Redeemed'}
+                              </Button>
                               {s.contact_method !== 'instagram' ? (
                                 <Button
                                   size="sm"

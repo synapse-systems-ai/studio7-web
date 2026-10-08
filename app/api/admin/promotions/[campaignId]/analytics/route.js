@@ -3,6 +3,7 @@ import { authenticateWithRole } from "@/lib/api-auth";
 import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ACCESS_ROLES } from "@/lib/promotions-auth";
 import { getPromoSignupStatus, parsePromoDateRange } from "@/lib/promo-signup";
+import { summarizePromoSignups } from "@/lib/promo-usage-stats";
 
 /** GET /api/admin/promotions/[campaignId]/analytics?range=week|2weeks|month|3months|custom&from=&to=&search= */
 export async function GET(request, { params }) {
@@ -17,6 +18,14 @@ export async function GET(request, { params }) {
     .toLowerCase();
 
   const supabase = getServiceRoleSupabase();
+
+  const { data: campaignMeta, error: metaErr } = await supabase
+    .from("promo_campaigns")
+    .select("promo_code, name")
+    .eq("id", campaignId)
+    .maybeSingle();
+
+  if (metaErr) return NextResponse.json({ error: metaErr.message }, { status: 500 });
 
   const { data: signupsRaw, error: signupsErr } = await supabase
     .from("promo_signups")
@@ -53,6 +62,7 @@ export async function GET(request, { params }) {
   if (clicksErr) return NextResponse.json({ error: clicksErr.message }, { status: 500 });
 
   const signupCount = signups.length;
+  const promo_stats = summarizePromoSignups(signups);
   const clicks = clicksCount ?? 0;
   // Clicks are unique-device landing-page views; signups can exceed them
   // (shared links, a click write that failed to log) but the rate shown to
@@ -65,5 +75,7 @@ export async function GET(request, { params }) {
     clicks_count: clicks,
     signups_count: signupCount,
     conversion_rate,
+    promo_code: campaignMeta?.promo_code || null,
+    promo_stats,
   });
 }

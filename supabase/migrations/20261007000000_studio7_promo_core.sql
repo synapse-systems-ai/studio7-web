@@ -30,6 +30,8 @@ create table if not exists public.promo_campaigns (
   code_valid_hours integer default 24,
   campaign_format text not null default 'guest_list',
   instagram_username text default 'studio7.rsa',
+  ticket_url text,
+  promo_code text,
   created_by uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

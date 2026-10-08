@@ -16,6 +16,8 @@ const EDITABLE_FIELDS = [
   "ends_at",
   "code_valid_hours",
   "instagram_username",
+  "ticket_url",
+  "promo_code",
 ];
 
 /** GET /api/admin/promotions/[campaignId] */
@@ -108,6 +110,33 @@ export async function PATCH(request, { params }) {
       .replace(/^@+/, "")
       .toLowerCase();
     patch.instagram_username = handle || "studio7.rsa";
+  }
+
+  if (patch.ticket_url !== undefined) {
+    if (patch.ticket_url === null || patch.ticket_url === "") {
+      patch.ticket_url = null;
+    } else {
+      const url = String(patch.ticket_url).trim();
+      if (!/^https?:\/\//i.test(url)) {
+        return NextResponse.json({ error: "ticket_url must be a valid http(s) URL" }, { status: 400 });
+      }
+      patch.ticket_url = url;
+    }
+  }
+
+  if (patch.promo_code !== undefined) {
+    if (patch.promo_code === null || patch.promo_code === "") {
+      patch.promo_code = null;
+    } else {
+      const code = String(patch.promo_code).trim().toUpperCase();
+      if (!/^[A-Z0-9_-]{3,40}$/.test(code)) {
+        return NextResponse.json(
+          { error: "promo_code must be 3–40 characters (letters, numbers, hyphen, underscore)" },
+          { status: 400 },
+        );
+      }
+      patch.promo_code = code;
+    }
   }
 
   patch.updated_at = new Date().toISOString();

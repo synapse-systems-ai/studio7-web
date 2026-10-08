@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
-import { generatePromoDiscountCode } from "@/lib/promo-codes";
+import { campaignPromoCodeOrError } from "@/lib/promo-campaign-code";
 import { portalPhoneLookupStrings } from "@/lib/portal-order-access";
 import { sendPromoSignupNotifications } from "@/lib/promo-notifications";
 import { getPromoPersonalUrl } from "@/lib/promo-public-url";
@@ -17,7 +17,9 @@ import {
 import { assertInstagramSignupAllowed } from "@/lib/promo-instagram-verification";
 
 const PUBLIC_CAMPAIGN_SELECT =
-  "id, slug, name, headline, description, image_url, discount_percent, terms_text, is_active, starts_at, ends_at, code_valid_hours, brand, campaign_format, instagram_username";
+  "id, slug, name, headline, description, image_url, discount_percent, terms_text, ticket_url, is_active, starts_at, ends_at, code_valid_hours, brand, campaign_format, instagram_username";
+
+const SIGNUP_CAMPAIGN_SELECT = `${PUBLIC_CAMPAIGN_SELECT}, promo_code`;
 
 async function findExistingCustomer(
   supabase: ReturnType<typeof getServiceRoleSupabase>,
@@ -83,44 +85,51 @@ type CampaignRow = {
   code_valid_hours?: number | null;
   campaign_format?: string | null;
   instagram_username?: string | null;
+  ticket_url?: string | null;
+  promo_code?: string | null;
 };
+
+function publicTicketUrl(campaign: { ticket_url?: string | null }) {
+  const raw = String(campaign.ticket_url || "").trim();
+  if (!raw) return null;
+  if (!/^https?:\/\//i.test(raw)) return null;
+  return raw;
+}
 
 async function insertPromoSignupWithCode(
   supabase: ReturnType<typeof getServiceRoleSupabase>,
   row: Record<string, unknown>,
+  discountCode: string,
 ) {
-  let discountCode = generatePromoDiscountCode();
-  let signup: Record<string, unknown> | null = null;
+  const { data, error: insertErr } = await supabase
+    .from("promo_signups")
+    .insert({ ...row, discount_code: discountCode })
+    .select()
+    .single();
 
-  for (let attempt = 0; attempt < 5 && !signup; attempt++) {
-    const { data, error: insertErr } = await supabase
-      .from("promo_signups")
-      .insert({ ...row, discount_code: discountCode })
-      .select()
-      .single();
-
-    if (!insertErr) {
-      signup = data;
-      break;
-    }
-    if (insertErr.code === "23505") {
-      const msg = String(insertErr.message || "");
-      if (
-        msg.includes("idx_promo_signups_unique_email_per_campaign") ||
-        msg.includes("idx_promo_signups_unique_instagram_per_campaign")
-      ) {
-        return { error: "duplicate" as const };
-      }
-      discountCode = generatePromoDiscountCode();
-      continue;
-    }
-    return { error: insertErr.message };
+  if (!insertErr) {
+    return { signup: data, discountCode };
   }
-
-  if (!signup) {
-    return { error: "Could not complete signup, please try again" };
+  if (insertErr.code === "23505") {
+    const msg = String(insertErr.message || "");
+    if (
+      msg.includes("idx_promo_signups_unique_email_per_campaign") ||
+      msg.includes("idx_promo_signups_unique_instagram_per_campaign")
+    ) {
+      return { error: "duplicate" as const };
+    }
   }
-  return { signup, discountCode };
+  return { error: insertErr.message };
+}
+
+function resolveSignupDiscountCode(campaign: CampaignRow):
+  | { ok: true; code: string }
+  | { ok: false; error: string; status: number } {
+  const configured = campaignPromoCodeOrError(campaign);
+  if (!configured.ok) {
+    return { ok: false, error: configured.error, status: 503 };
+  }
+  return configured;
 }
 
 const brand = getPromoBrand();
@@ -173,7 +182,7 @@ export async function promoSlugPOST(
 
   const { data: campaign, error: campErr } = await supabase
     .from("promo_campaigns")
-    .select(PUBLIC_CAMPAIGN_SELECT)
+    .select(SIGNUP_CAMPAIGN_SELECT)
     .eq("slug", slug)
     .eq("brand", brandId)
     .maybeSingle();
@@ -187,6 +196,12 @@ export async function promoSlugPOST(
   const expiresAt = promoExpiresAtFromSignup(new Date(), validHours);
   const accessToken = randomUUID();
   const campaignRow = campaign as CampaignRow;
+
+  const discountResolved = resolveSignupDiscountCode(campaignRow);
+  if (!discountResolved.ok) {
+    return NextResponse.json({ error: discountResolved.error }, { status: discountResolved.status });
+  }
+  const campaignDiscountCode = discountResolved.code;
 
   if (isInstagramPromoCampaign(campaign)) {
     const handle = normalizeInstagramHandle(String(body.instagram_handle || body.instagram || ""));
@@ -209,17 +224,21 @@ export async function promoSlugPOST(
     }
 
     const email = syntheticEmailForInstagramSignup(campaign.id, handle);
-    const inserted = await insertPromoSignupWithCode(supabase, {
-      campaign_id: campaign.id,
-      customer_id: null,
-      name: `@${handle}`,
-      email,
-      phone: "—",
-      instagram_handle: handle,
-      contact_method: "instagram",
-      expires_at: expiresAt,
-      access_token: accessToken,
-    });
+    const inserted = await insertPromoSignupWithCode(
+      supabase,
+      {
+        campaign_id: campaign.id,
+        customer_id: null,
+        name: `@${handle}`,
+        email,
+        phone: "—",
+        instagram_handle: handle,
+        contact_method: "instagram",
+        expires_at: expiresAt,
+        access_token: accessToken,
+      },
+      campaignDiscountCode,
+    );
 
     if ("error" in inserted) {
       if (inserted.error === "duplicate") {
@@ -236,11 +255,12 @@ export async function promoSlugPOST(
 
     return NextResponse.json({
       success: true,
-      message: `Thanks @${handle}! Here's your ${campaignRow.discount_percent}% ticket discount — save your code below.`,
+      message: `Thanks @${handle}! Copy your promo code below, then tap Redeem code to get tickets on Howler.`,
       discount_code: discountCode,
       expires_at: expiresAt,
       valid_hours: validHours,
       personal_url: personalUrl,
+      ticket_url: publicTicketUrl(campaignRow),
       email_sent: false,
       stores: [],
     });
@@ -298,16 +318,20 @@ export async function promoSlugPOST(
     console.error("promo signup: customer match/create failed (non-fatal):", e);
   }
 
-  const inserted = await insertPromoSignupWithCode(supabase, {
-    campaign_id: campaign.id,
-    customer_id: customerId,
-    name,
-    email,
-    phone,
-    contact_method: "email",
-    expires_at: expiresAt,
-    access_token: accessToken,
-  });
+  const inserted = await insertPromoSignupWithCode(
+    supabase,
+    {
+      campaign_id: campaign.id,
+      customer_id: customerId,
+      name,
+      email,
+      phone,
+      contact_method: "email",
+      expires_at: expiresAt,
+      access_token: accessToken,
+    },
+    campaignDiscountCode,
+  );
 
   if ("error" in inserted) {
     if (inserted.error === "duplicate") {
@@ -355,6 +379,7 @@ export async function promoSlugPOST(
     expires_at: expiresAt,
     valid_hours: validHours,
     personal_url: personalUrl,
+    ticket_url: publicTicketUrl(campaign as CampaignRow),
     email_sent: emailOk,
     stores: [],
   });
