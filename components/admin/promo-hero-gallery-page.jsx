@@ -37,6 +37,8 @@ export function PromoHeroGalleryPage() {
   const [slides, setSlides] = useState([]);
   const [customized, setCustomized] = useState(false);
   const [tableMissing, setTableMissing] = useState(false);
+  const [schemaStale, setSchemaStale] = useState(false);
+  const [dbError, setDbError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [replacingId, setReplacingId] = useState(null);
@@ -51,6 +53,8 @@ export function PromoHeroGalleryPage() {
       setSlides(j.slides || []);
       setCustomized(Boolean(j.customized));
       setTableMissing(Boolean(j.tableMissing));
+      setSchemaStale(Boolean(j.schemaStale));
+      setDbError(j.dbError || null);
     } catch (e) {
       toast.error("Could not load gallery", { description: e.message });
     } finally {
@@ -214,15 +218,42 @@ export function PromoHeroGalleryPage() {
           <AdminBackLink href={brand.adminBasePath} label={`Back to ${brand.listTitle}`} />
         </div>
 
+        {schemaStale ? (
+          <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+            <CardHeader>
+              <CardTitle className="text-base">Reload Supabase API schema</CardTitle>
+              <CardDescription className="space-y-2">
+                <p>
+                  The table exists, but the API hasn&apos;t picked it up yet. In Supabase SQL Editor, run:
+                </p>
+                <code className="block rounded-md bg-muted px-3 py-2 text-xs">
+                  notify pgrst, &apos;reload schema&apos;;
+                </code>
+                <p>
+                  Or use <strong>Project Settings → API → Reload schema</strong>, then refresh this page and click{" "}
+                  <strong>Import current defaults</strong>.
+                </p>
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
         {tableMissing ? (
           <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
             <CardHeader>
               <CardTitle className="text-base">Database setup required</CardTitle>
               <CardDescription>
-                Run the migration{" "}
+                Run{" "}
                 <code className="text-xs">supabase/migrations/20261008120000_promo_hero_slides.sql</code> in Supabase
                 SQL Editor, then refresh. Until then, bundled photos still show on promo pages.
               </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+        {dbError && !tableMissing && !schemaStale ? (
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardHeader>
+              <CardTitle className="text-base">Could not read gallery</CardTitle>
+              <CardDescription className="font-mono text-xs break-all">{dbError}</CardDescription>
             </CardHeader>
           </Card>
         ) : null}

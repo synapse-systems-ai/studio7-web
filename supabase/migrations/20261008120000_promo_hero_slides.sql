@@ -13,4 +13,9 @@ create index if not exists promo_hero_slides_brand_sort_idx
 
 alter table public.promo_hero_slides enable row level security;
 
--- No public policies: API uses service role only.
+-- Server routes use the service role key (bypasses RLS).
+grant all on table public.promo_hero_slides to service_role;
+grant all on table public.promo_hero_slides to postgres;
+
+-- Refresh PostgREST so the API sees the new table immediately.
+notify pgrst, 'reload schema';

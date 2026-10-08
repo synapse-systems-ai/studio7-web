@@ -20,6 +20,8 @@ export async function GET(request) {
     slides: result.slides,
     customized: result.customized,
     tableMissing: result.tableMissing ?? false,
+    schemaStale: result.schemaStale ?? false,
+    dbError: result.dbError ?? null,
   });
 }
 

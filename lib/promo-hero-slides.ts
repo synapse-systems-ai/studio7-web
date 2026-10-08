@@ -27,8 +27,17 @@ function bundledSlides(): PromoHeroSlide[] {
   }));
 }
 
-function isMissingTableError(message: string) {
-  return /promo_hero_slides|relation.*does not exist|schema cache/i.test(message);
+function classifyHeroSlidesDbError(message: string) {
+  const msg = String(message || "");
+  if (/schema cache/i.test(msg)) return "schemaStale" as const;
+  if (/relation.*does not exist|promo_hero_slides.*does not exist/i.test(msg)) {
+    return "tableMissing" as const;
+  }
+  return "queryFailed" as const;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function rowToSlide(row: PromoHeroSlideRow): PromoHeroSlide {
@@ -44,20 +53,41 @@ function rowToSlide(row: PromoHeroSlideRow): PromoHeroSlide {
 export async function listPromoHeroSlides(
   supabase: SupabaseClient,
   brand: PromoBrandId = PROMO_BRAND_STUDIO7,
-): Promise<{ slides: PromoHeroSlide[]; customized: boolean; tableMissing?: boolean }> {
-  const { data, error } = await supabase
-    .from("promo_hero_slides")
-    .select("id, brand, image_url, alt_text, sort_order, created_at")
-    .eq("brand", brand)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+): Promise<{
+  slides: PromoHeroSlide[];
+  customized: boolean;
+  tableMissing?: boolean;
+  schemaStale?: boolean;
+  dbError?: string;
+}> {
+  const runQuery = () =>
+    supabase
+      .from("promo_hero_slides")
+      .select("id, brand, image_url, alt_text, sort_order, created_at")
+      .eq("brand", brand)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+  let { data, error } = await runQuery();
 
   if (error) {
-    if (isMissingTableError(error.message)) {
-      return { slides: bundledSlides(), customized: false, tableMissing: true };
+    const kind = classifyHeroSlidesDbError(error.message);
+    if (kind === "schemaStale") {
+      await sleep(1500);
+      ({ data, error } = await runQuery());
+    }
+  }
+
+  if (error) {
+    const kind = classifyHeroSlidesDbError(error.message);
+    if (kind === "tableMissing") {
+      return { slides: bundledSlides(), customized: false, tableMissing: true, dbError: error.message };
+    }
+    if (kind === "schemaStale") {
+      return { slides: bundledSlides(), customized: false, schemaStale: true, dbError: error.message };
     }
     console.error("[promo hero slides] list failed:", error.message);
-    return { slides: bundledSlides(), customized: false };
+    return { slides: bundledSlides(), customized: false, dbError: error.message };
   }
 
   if (!data?.length) {
