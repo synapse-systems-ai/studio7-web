@@ -12,17 +12,13 @@ import { PromoInstagramSignupForm } from "@/components/promo/promo-instagram-sig
 import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
 import { isInstagramPromoCampaign } from "@/lib/promo-campaign-format";
 import { cn } from "@/lib/utils";
-
-const promoCardClass =
-  "mx-auto my-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/50 bg-white/95 shadow-[0_12px_48px_rgba(0,0,0,0.35)] ring-1 ring-black/5 backdrop-blur-xl sm:bg-white";
-
-const promoFieldClass =
-  "h-10 border-zinc-200 bg-white text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:border-zinc-900 focus-visible:ring-zinc-900/15 sm:h-11";
-
-const promoLabelClass = "text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-600";
-
-const promoSubmitClass =
-  "h-12 w-full rounded-xl bg-zinc-950 text-xs font-bold uppercase tracking-[0.2em] text-white shadow-md hover:bg-zinc-800 disabled:opacity-60 sm:text-sm";
+import {
+  promoCardClass,
+  promoFieldClass,
+  promoFormShellClass,
+  promoLabelClass,
+  promoSubmitClass,
+} from "@/components/promo/promo-card-theme";
 
 type PublicCampaign = {
   headline?: string;
@@ -36,7 +32,7 @@ type PublicCampaign = {
 
 function PromoShell({ campaign, children }: { campaign: PublicCampaign | null; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 h-dvh w-full overflow-hidden text-black">
+    <div className="fixed inset-0 h-dvh w-full overflow-hidden text-white">
       <PromoHeroBackground campaign={campaign} />
       {children}
     </div>
@@ -152,7 +148,6 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instagram_handle: instagramHandle,
-          follow_confirmed: true,
         }),
       });
       const result = await res.json();
@@ -180,8 +175,8 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
       <PromoShell campaign={null}>
         <div className="relative z-10 flex h-full items-center justify-center p-3 sm:p-4">
           <div className={cn(promoCardClass, "px-6 py-8 text-center")}>
-            <p className="text-lg font-semibold text-zinc-900">This promotion isn&apos;t available.</p>
-            <p className="mt-2 text-sm text-zinc-600">{error}</p>
+            <p className="text-lg font-semibold text-white">This promotion isn&apos;t available.</p>
+            <p className="mt-2 text-sm text-zinc-400">{error}</p>
           </div>
         </div>
       </PromoShell>
@@ -192,11 +187,11 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
     <PromoShell campaign={campaign}>
       <div className="relative z-10 flex h-full w-full items-center justify-center overflow-y-auto p-3 sm:p-4">
         <div className={promoCardClass}>
-          <div className="border-b border-zinc-100 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
+          <div className="border-b border-zinc-800 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
             {brand.id === PROMO_BRAND_STUDIO7 ? (
-              <Studio7Logo size={80} priority className="mx-auto ring-zinc-200/80" />
+              <Studio7Logo size={80} priority className="mx-auto ring-zinc-600/80 invert" />
             ) : (
-              <p className="text-lg font-bold tracking-tight text-zinc-900 sm:text-xl">{brand.label}</p>
+              <p className="text-lg font-bold tracking-tight text-white sm:text-xl">{brand.label}</p>
             )}
             {brand.id === PROMO_BRAND_STUDIO7 ? (
               <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.35em] text-zinc-500">
@@ -205,14 +200,14 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
             ) : null}
             <h1
               className={cn(
-                "text-xl font-bold leading-snug tracking-tight text-zinc-950 sm:text-2xl",
+                "text-xl font-bold leading-snug tracking-tight text-white sm:text-2xl",
                 brand.id === PROMO_BRAND_STUDIO7 ? "mt-2" : "mt-4",
               )}
             >
               {headline}
             </h1>
             {campaign?.description ? (
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-zinc-600">{campaign.description}</p>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-zinc-400">{campaign.description}</p>
             ) : null}
           </div>
 
@@ -235,7 +230,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
                 onSubmit={submitInstagram}
               />
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-4 sm:p-5">
+              <form onSubmit={handleSubmit} className={promoFormShellClass}>
                 <div className="grid grid-cols-1 gap-3 sm:gap-4">
                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     <div className="space-y-1.5">
@@ -304,7 +299,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
                 <p className="text-center text-[11px] leading-relaxed text-zinc-500 sm:text-xs">{brand.signupHint}</p>
 
                 {error ? (
-                  <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-xs text-red-800 sm:text-sm">
+                  <p className="rounded-lg border border-red-900/80 bg-red-950/50 px-3 py-2 text-center text-xs text-red-200 sm:text-sm">
                     {error}
                   </p>
                 ) : null}

@@ -43,19 +43,19 @@ function PromoCountdown({ expiresAt, validHours }: { expiresAt?: string | null; 
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-left sm:mt-4">
-      <div className="flex items-center gap-2 text-amber-900">
+    <div className="mt-3 rounded-lg border border-amber-700/50 bg-amber-950/40 px-3 py-2.5 text-left sm:mt-4">
+      <div className="flex items-center gap-2 text-amber-200">
         <Clock className="h-4 w-4 shrink-0" />
         <span className="text-xs font-semibold uppercase tracking-wide">
           {remaining.expired ? "Code expired" : `Valid for ${formatPromoValidDuration(validHours ?? 24)}`}
         </span>
       </div>
       {!remaining.expired && (
-        <p className="mt-1 font-mono text-lg font-bold tabular-nums text-amber-950">
+        <p className="mt-1 font-mono text-lg font-bold tabular-nums text-amber-100">
           {pad(remaining.hours)}:{pad(remaining.minutes)}:{pad(remaining.seconds)}
         </p>
       )}
-      <p className="mt-1 text-[11px] text-amber-800">Use your code in-store before the timer runs out.</p>
+      <p className="mt-1 text-[11px] text-amber-300/90">Use your code in-store before the timer runs out.</p>
     </div>
   );
 }
@@ -84,13 +84,13 @@ export function PromoSuccessCard({
   const isInactive = isUsed || isExpired || isCancelled;
 
   return (
-    <div className="mt-3 rounded-xl border border-green-200 bg-green-50 p-4 text-center sm:mt-0 sm:p-6">
+    <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/35 p-4 text-center sm:mt-0 sm:p-6">
       {isInactive ? (
         <XCircle className="mx-auto h-9 w-9 text-amber-600 sm:h-10 sm:w-10" />
       ) : (
-        <CheckCircle2 className="mx-auto h-9 w-9 text-green-600 sm:h-10 sm:w-10" />
+        <CheckCircle2 className="mx-auto h-9 w-9 text-emerald-400 sm:h-10 sm:w-10" />
       )}
-      <p className="mt-2 font-medium text-green-800">
+      <p className="mt-2 font-medium text-emerald-100">
         {isUsed
           ? "This code has been used"
           : isExpired
@@ -99,8 +99,8 @@ export function PromoSuccessCard({
               ? "This code has been cancelled"
               : "You're all set!"}
       </p>
-      {message && <p className="mt-1 text-sm text-green-700">{message}</p>}
-      {headline && !message && <p className="mt-1 text-sm text-green-700">{headline}</p>}
+      {message && <p className="mt-1 text-sm text-emerald-200/90">{message}</p>}
+      {headline && !message && <p className="mt-1 text-sm text-emerald-200/90">{headline}</p>}
       {showStatus && status && (
         <div className="mt-2">
           <Badge variant={isUsed ? "secondary" : isExpired || isCancelled ? "destructive" : "default"}>
@@ -109,9 +109,9 @@ export function PromoSuccessCard({
         </div>
       )}
       {discountCode && (
-        <div className="mt-3 rounded-lg border border-green-300 bg-white px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-gray-500">Your code</p>
-          <p className="font-mono text-lg font-bold text-gray-900">{discountCode}</p>
+        <div className="mt-3 rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-zinc-500">Your code</p>
+          <p className="font-mono text-lg font-bold text-white">{discountCode}</p>
         </div>
       )}
       {!isInactive && <PromoCountdown expiresAt={expiresAt} validHours={validHours} />}

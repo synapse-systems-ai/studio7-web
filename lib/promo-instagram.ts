@@ -19,6 +19,12 @@ export function instagramProfileUrl(username: string) {
   return `https://www.instagram.com/${encodeURIComponent(handle)}/`;
 }
 
+export function instagramDmUrl(username: string) {
+  const handle = normalizeInstagramHandle(username);
+  if (!handle) return STUDIO7_INSTAGRAM_URL;
+  return `https://ig.me/m/${encodeURIComponent(handle)}`;
+}
+
 export function displayInstagramHandle(username: string) {
   const handle = normalizeInstagramHandle(username);
   return handle ? `@${handle}` : "@studio7.rsa";

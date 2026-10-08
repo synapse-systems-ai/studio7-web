@@ -52,6 +52,7 @@ create table if not exists public.promo_signups (
   expires_at timestamptz not null,
   redeemed_at timestamptz,
   cancelled_at timestamptz,
+  cancelled_by uuid,
   created_at timestamptz not null default now(),
   constraint promo_signups_access_token_key unique (access_token)
 );
@@ -87,16 +88,52 @@ create table if not exists public.promo_hero_slides (
 create index if not exists promo_hero_slides_brand_sort_idx
   on public.promo_hero_slides (brand, sort_order, created_at);
 
+create table if not exists public.promo_instagram_verifications (
+  id uuid primary key default gen_random_uuid(),
+  brand_instagram_username text not null,
+  instagram_username text not null,
+  instagram_scoped_id text,
+  follows_business boolean not null default false,
+  verified_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists idx_promo_ig_verifications_brand_user
+  on public.promo_instagram_verifications (brand_instagram_username, instagram_username);
+
 alter table public.promo_campaigns enable row level security;
 alter table public.promo_signups enable row level security;
 alter table public.promo_campaign_views enable row level security;
 alter table public.promo_hero_slides enable row level security;
+alter table public.promo_instagram_verifications enable row level security;
 alter table public.customers enable row level security;
 
 grant all on table public.promo_campaigns to service_role;
 grant all on table public.promo_signups to service_role;
 grant all on table public.promo_campaign_views to service_role;
 grant all on table public.promo_hero_slides to service_role;
+grant all on table public.promo_instagram_verifications to service_role;
 grant all on table public.customers to service_role;
+
+create table if not exists public.users (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  name text not null,
+  password_hash text not null,
+  role text not null default 'marketing',
+  phone text,
+  store_id uuid,
+  is_active boolean not null default true,
+  force_password_change boolean not null default false,
+  last_login timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint users_email_key unique (email)
+);
+
+create index if not exists users_role_idx on public.users (role);
+alter table public.users enable row level security;
+grant all on table public.users to service_role;
 
 notify pgrst, 'reload schema';

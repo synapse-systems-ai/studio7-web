@@ -44,7 +44,19 @@ export async function POST(request, { params }) {
     )
     .single();
 
-  if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+  if (updateErr) {
+    const msg = updateErr.message || "Update failed";
+    if (/cancelled_by|schema cache/i.test(msg)) {
+      return NextResponse.json(
+        {
+          error:
+            "Database missing promo_signups.cancelled_by. Run supabase/patch_promo_signups_cancelled_by.sql in Supabase SQL Editor, reload schema, retry.",
+        },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
 
   return NextResponse.json({
     signup: {

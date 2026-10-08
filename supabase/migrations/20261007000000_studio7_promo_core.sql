@@ -52,6 +52,7 @@ create table if not exists public.promo_signups (
   expires_at timestamptz not null,
   redeemed_at timestamptz,
   cancelled_at timestamptz,
+  cancelled_by uuid,
   created_at timestamptz not null default now(),
   constraint promo_signups_access_token_key unique (access_token)
 );

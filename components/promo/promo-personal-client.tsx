@@ -11,9 +11,7 @@ import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
 import type { PromoSignupStatus } from "@/lib/promo-signup";
 import { STUDIO7_INSTAGRAM_URL } from "@/lib/studio7-site-assets";
 import { cn } from "@/lib/utils";
-
-const promoCardClass =
-  "mx-auto my-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/50 bg-white/95 shadow-[0_12px_48px_rgba(0,0,0,0.35)] ring-1 ring-black/5 backdrop-blur-xl sm:bg-white";
+import { promoCardClass } from "@/components/promo/promo-card-theme";
 
 function PromoShell({
   campaign,
@@ -23,7 +21,7 @@ function PromoShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 h-dvh w-full overflow-hidden text-black">
+    <div className="fixed inset-0 h-dvh w-full overflow-hidden text-white">
       <PromoHeroBackground campaign={campaign} />
       <div className="relative z-10 flex h-full w-full overflow-y-auto">{children}</div>
     </div>
@@ -82,8 +80,8 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
       <PromoShell campaign={null}>
         <div className="flex h-full w-full items-center justify-center p-3 sm:p-4">
           <div className={cn(promoCardClass, "px-6 py-8 text-center")}>
-            <p className="text-lg font-semibold text-zinc-900">Pass not found</p>
-            <p className="mt-2 text-sm text-zinc-600">{error || "This link may be invalid or expired."}</p>
+            <p className="text-lg font-semibold text-white">Pass not found</p>
+            <p className="mt-2 text-sm text-zinc-400">{error || "This link may be invalid or expired."}</p>
           </div>
         </div>
       </PromoShell>
@@ -98,25 +96,25 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
     <PromoShell campaign={campaign}>
       <div className="flex h-full w-full items-center justify-center p-3 sm:p-4">
         <div className={promoCardClass}>
-          <div className="border-b border-zinc-100 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
+          <div className="border-b border-zinc-800 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
             {brand.id === PROMO_BRAND_STUDIO7 ? (
-              <Studio7Logo size={80} priority className="mx-auto ring-zinc-200/80" />
+              <Studio7Logo size={80} priority className="mx-auto ring-zinc-600/80 invert" />
             ) : (
-              <p className="text-lg font-bold tracking-tight text-zinc-900">{brand.label}</p>
+              <p className="text-lg font-bold tracking-tight text-white">{brand.label}</p>
             )}
             {brand.id === PROMO_BRAND_STUDIO7 ? (
               <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.35em] text-zinc-500">Guest pass</p>
             ) : null}
-            <h1 className="mt-2 text-xl font-bold leading-snug tracking-tight text-zinc-950 sm:text-2xl">
+            <h1 className="mt-2 text-xl font-bold leading-snug tracking-tight text-white sm:text-2xl">
               {campaign?.headline || "Your Studio 7 promo"}
             </h1>
             {isOngoing && campaign?.discount_percent != null ? (
-              <Badge variant="secondary" className="mt-3 border-zinc-200 bg-zinc-100 text-zinc-800">
+              <Badge variant="secondary" className="mt-3 border-zinc-600 bg-zinc-800 text-zinc-200">
                 {campaign.discount_percent}% off in-store
               </Badge>
             ) : null}
             {campaign?.description ? (
-              <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-zinc-600">{campaign.description}</p>
+              <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-zinc-400">{campaign.description}</p>
             ) : null}
           </div>
 
@@ -135,7 +133,7 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
             />
 
             {brand.id === PROMO_BRAND_STUDIO7 ? (
-              <div className="mt-5 space-y-3 border-t border-zinc-100 pt-5">
+              <div className="mt-5 space-y-3 border-t border-zinc-800 pt-5">
                 <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
                   Stay in the loop
                 </p>

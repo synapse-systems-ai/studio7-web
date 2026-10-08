@@ -14,6 +14,7 @@ import {
   normalizeInstagramHandle,
   syntheticEmailForInstagramSignup,
 } from "@/lib/promo-instagram";
+import { assertInstagramSignupAllowed } from "@/lib/promo-instagram-verification";
 
 const PUBLIC_CAMPAIGN_SELECT =
   "id, slug, name, headline, description, image_url, discount_percent, terms_text, is_active, starts_at, ends_at, code_valid_hours, brand, campaign_format, instagram_username";
@@ -81,6 +82,7 @@ type CampaignRow = {
   terms_text?: string | null;
   code_valid_hours?: number | null;
   campaign_format?: string | null;
+  instagram_username?: string | null;
 };
 
 async function insertPromoSignupWithCode(
@@ -187,12 +189,15 @@ export async function promoSlugPOST(
   const campaignRow = campaign as CampaignRow;
 
   if (isInstagramPromoCampaign(campaign)) {
-    if (body.follow_confirmed !== true) {
-      return NextResponse.json({ error: "Please follow the account and confirm before submitting." }, { status: 400 });
-    }
     const handle = normalizeInstagramHandle(String(body.instagram_handle || body.instagram || ""));
     if (!isValidInstagramHandle(handle)) {
       return NextResponse.json({ error: "Please enter a valid Instagram handle." }, { status: 400 });
+    }
+
+    const brandIg = normalizeInstagramHandle(campaignRow.instagram_username || "studio7.rsa");
+    const eligibility = await assertInstagramSignupAllowed(supabase, brandIg, handle);
+    if (!eligibility.ok) {
+      return NextResponse.json({ error: eligibility.error }, { status: eligibility.status });
     }
 
     const alreadyIg = await findExistingInstagramSignup(supabase, { campaignId: campaign.id, handle });
