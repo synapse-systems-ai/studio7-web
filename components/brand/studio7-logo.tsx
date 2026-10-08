@@ -19,19 +19,30 @@ export function Studio7Logo({
   variant = "default",
 }: Studio7LogoProps) {
   const promo = variant === "promo";
-  const dimension = promo ? Math.round(size * 1.35) : size;
+  const dimension = promo ? Math.round(size * 1.45) : size;
 
-  const image = (
+  const promoImageClass =
+    "h-auto w-auto max-w-[min(188px,48vw)] object-contain mix-blend-screen opacity-[0.98] [mask-image:radial-gradient(circle_at_center,#000_42%,transparent_68%)]";
+
+  const image = promo ? (
+    <span className={cn("inline-flex items-center justify-center", className)}>
+      <Image
+        src="/st7-logo.png"
+        alt="Studio 7"
+        width={dimension}
+        height={dimension}
+        priority={priority}
+        className={promoImageClass}
+      />
+    </span>
+  ) : (
     <Image
       src="/st7-logo.png"
       alt="Studio 7"
       width={dimension}
       height={dimension}
       priority={priority}
-      className={cn(
-        promo ? "h-auto w-auto max-w-[min(168px,44vw)] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)]" : "rounded-full shadow-xl ring-1 ring-white/15",
-        className,
-      )}
+      className={cn("rounded-full shadow-xl ring-1 ring-white/15", className)}
     />
   );
 

@@ -3,6 +3,7 @@ import { authenticateWithRole } from "@/lib/api-auth";
 import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ACCESS_ROLES } from "@/lib/promotions-auth";
 import { PROMO_CODE_VALID_HOURS_MAX } from "@/lib/promo-signup";
+import { ensureCampaignQrShortCode } from "@/lib/promo-qr-campaign";
 
 const EDITABLE_FIELDS = [
   "name",
@@ -18,6 +19,7 @@ const EDITABLE_FIELDS = [
   "instagram_username",
   "ticket_url",
   "promo_code",
+  "qr_destination_url",
 ];
 
 /** GET /api/admin/promotions/[campaignId] */
@@ -37,7 +39,8 @@ export async function GET(request, { params }) {
   if (campErr) return NextResponse.json({ error: campErr.message }, { status: 500 });
   if (!campaign) return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
 
-  return NextResponse.json({ campaign });
+  const withQr = await ensureCampaignQrShortCode(supabase, campaign);
+  return NextResponse.json({ campaign: withQr || campaign });
 }
 
 /** PATCH /api/admin/promotions/[campaignId] - edit landing page content */
@@ -136,6 +139,18 @@ export async function PATCH(request, { params }) {
         );
       }
       patch.promo_code = code;
+    }
+  }
+
+  if (patch.qr_destination_url !== undefined) {
+    if (patch.qr_destination_url === null || patch.qr_destination_url === "") {
+      patch.qr_destination_url = null;
+    } else {
+      const url = String(patch.qr_destination_url).trim();
+      if (!/^https?:\/\//i.test(url)) {
+        return NextResponse.json({ error: "qr_destination_url must be a valid http(s) URL" }, { status: 400 });
+      }
+      patch.qr_destination_url = url;
     }
   }
 

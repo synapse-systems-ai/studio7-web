@@ -32,6 +32,8 @@ create table if not exists public.promo_campaigns (
   instagram_username text default 'studio7.rsa',
   ticket_url text,
   promo_code text,
+  qr_short_code text,
+  qr_destination_url text,
   created_by uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -39,6 +41,10 @@ create table if not exists public.promo_campaigns (
 );
 
 create index if not exists promo_campaigns_brand_idx on public.promo_campaigns (brand);
+
+create unique index if not exists idx_promo_campaigns_qr_short_code
+  on public.promo_campaigns (qr_short_code)
+  where qr_short_code is not null;
 
 create table if not exists public.promo_signups (
   id uuid primary key default gen_random_uuid(),
@@ -78,6 +84,17 @@ create table if not exists public.promo_campaign_views (
 
 create index if not exists promo_campaign_views_campaign_id_idx on public.promo_campaign_views (campaign_id);
 
+create table if not exists public.promo_qr_scans (
+  id uuid primary key default gen_random_uuid(),
+  campaign_id uuid not null references public.promo_campaigns (id) on delete cascade,
+  device_type text not null default 'unknown',
+  user_agent text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists promo_qr_scans_campaign_created_idx
+  on public.promo_qr_scans (campaign_id, created_at desc);
+
 create table if not exists public.promo_hero_slides (
   id uuid primary key default gen_random_uuid(),
   brand text not null default 'studio7',
@@ -107,6 +124,7 @@ create unique index if not exists idx_promo_ig_verifications_brand_user
 alter table public.promo_campaigns enable row level security;
 alter table public.promo_signups enable row level security;
 alter table public.promo_campaign_views enable row level security;
+alter table public.promo_qr_scans enable row level security;
 alter table public.promo_hero_slides enable row level security;
 alter table public.promo_instagram_verifications enable row level security;
 alter table public.customers enable row level security;
@@ -114,6 +132,7 @@ alter table public.customers enable row level security;
 grant all on table public.promo_campaigns to service_role;
 grant all on table public.promo_signups to service_role;
 grant all on table public.promo_campaign_views to service_role;
+grant all on table public.promo_qr_scans to service_role;
 grant all on table public.promo_hero_slides to service_role;
 grant all on table public.promo_instagram_verifications to service_role;
 grant all on table public.customers to service_role;

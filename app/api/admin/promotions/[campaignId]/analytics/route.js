@@ -61,6 +61,22 @@ export async function GET(request, { params }) {
 
   if (clicksErr) return NextResponse.json({ error: clicksErr.message }, { status: 500 });
 
+  const { data: qrScansRaw, error: qrScansErr } = await supabase
+    .from("promo_qr_scans")
+    .select("device_type, created_at")
+    .eq("campaign_id", campaignId)
+    .gte("created_at", range.from)
+    .lte("created_at", range.to);
+
+  if (qrScansErr) return NextResponse.json({ error: qrScansErr.message }, { status: 500 });
+
+  const qr_scans_by_device = { mobile: 0, desktop: 0, tablet: 0, bot: 0, unknown: 0 };
+  for (const row of qrScansRaw || []) {
+    const key = row.device_type in qr_scans_by_device ? row.device_type : "unknown";
+    qr_scans_by_device[key] += 1;
+  }
+  const qr_scans_count = (qrScansRaw || []).length;
+
   const signupCount = signups.length;
   const promo_stats = summarizePromoSignups(signups);
   const clicks = clicksCount ?? 0;
@@ -77,5 +93,7 @@ export async function GET(request, { params }) {
     conversion_rate,
     promo_code: campaignMeta?.promo_code || null,
     promo_stats,
+    qr_scans_count,
+    qr_scans_by_device,
   });
 }

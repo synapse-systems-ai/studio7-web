@@ -43,6 +43,7 @@ import {
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-jwt-auth'
 import { getPromoLandingUrl } from '@/lib/promo-public-url'
+import { getPromoDynamicQrUrl } from '@/lib/promo-qr'
 import { usePromoBrand } from '@/lib/promo-brand-context'
 import { formatPromoStatusLabel } from '@/lib/promo-signup'
 import {
@@ -103,11 +104,13 @@ function ContentTab({ campaign, onSaved }) {
     instagram_username: campaign.instagram_username || 'studio7.rsa',
     ticket_url: campaign.ticket_url || '',
     promo_code: campaign.promo_code || '',
+    qr_destination_url: campaign.qr_destination_url || '',
   })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
 
   const publicUrl = getPromoLandingUrl(campaign.slug)
+  const qrScanUrl = campaign.qr_short_code ? getPromoDynamicQrUrl(campaign.qr_short_code) : ''
   const previewImage = form.image_url || getPromoCampaignPreviewImage(campaign)
   const { download: downloadQrPng } = useDynamicQrDownload()
 
@@ -150,6 +153,7 @@ function ContentTab({ campaign, onSaved }) {
         instagram_username: form.instagram_username,
         ticket_url: form.ticket_url.trim() || null,
         promo_code: form.promo_code.trim().toUpperCase() || null,
+        qr_destination_url: form.qr_destination_url.trim() || null,
       }
       const r = await fetch(`${adminApi}/${campaign.id}`, {
         method: 'PATCH',
@@ -170,7 +174,7 @@ function ContentTab({ campaign, onSaved }) {
 
   const downloadQr = async () => {
     try {
-      const { ios } = await downloadQrPng(publicUrl, { fileName: `${campaign.slug}-qr.png` })
+      const { ios } = await downloadQrPng(qrScanUrl || publicUrl, { fileName: `${campaign.slug}-qr.png` })
       if (ios) toast.info('Long-press the QR code image and tap "Save to Photos"')
     } catch {
       toast.error('Could not export QR code')
@@ -410,15 +414,43 @@ function ContentTab({ campaign, onSaved }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">QR code</CardTitle>
-          <CardDescription>Scanning this opens the public landing page.</CardDescription>
+          <CardTitle className="text-lg">Dynamic QR code</CardTitle>
+          <CardDescription>
+            The printed QR always uses the short link below. Change where it sends people without reprinting.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-center rounded-lg border bg-white p-4">
-            <DynamicQrCode id="promo-qr-svg" value={publicUrl} size={180} />
+            <DynamicQrCode id="promo-qr-svg" value={qrScanUrl || publicUrl} size={180} />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Public link</Label>
+            <Label className="text-xs text-muted-foreground">Short QR link (fixed — use on posters)</Label>
+            <div className="flex items-center gap-2">
+              <Input value={qrScanUrl || 'Generating…'} readOnly className="text-xs font-mono" />
+              {qrScanUrl ? (
+                <Button variant="outline" size="icon" asChild>
+                  <a href={qrScanUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>QR destination URL</Label>
+            <Input
+              type="url"
+              value={form.qr_destination_url}
+              onChange={(e) => setForm((f) => ({ ...f, qr_destination_url: e.target.value }))}
+              placeholder={publicUrl}
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave empty to send scans to the campaign landing page ({publicUrl}). Override to send anywhere
+              (e.g. Howler). Save changes after editing.
+            </p>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Default landing page</Label>
             <div className="flex items-center gap-2">
               <Input value={publicUrl} readOnly className="text-xs" />
               <Button variant="outline" size="icon" asChild>
@@ -428,7 +460,7 @@ function ContentTab({ campaign, onSaved }) {
               </Button>
             </div>
           </div>
-          <Button variant="outline" className="w-full" onClick={downloadQr}>
+          <Button variant="outline" className="w-full" onClick={downloadQr} disabled={!qrScanUrl}>
             <Download className="mr-2 h-4 w-4" />
             Download QR
           </Button>
@@ -457,6 +489,8 @@ function AnalyticsTab({ campaignId }) {
   const [redeemingId, setRedeemingId] = useState(null)
   const [promoCode, setPromoCode] = useState(null)
   const [promoStats, setPromoStats] = useState(null)
+  const [qrScansCount, setQrScansCount] = useState(0)
+  const [qrScansByDevice, setQrScansByDevice] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -481,6 +515,8 @@ function AnalyticsTab({ campaignId }) {
       setConversionRate(j.conversion_rate)
       setPromoCode(j.promo_code || null)
       setPromoStats(j.promo_stats || null)
+      setQrScansCount(j.qr_scans_count ?? 0)
+      setQrScansByDevice(j.qr_scans_by_device || null)
     } catch (e) {
       toast.error('Failed to load analytics', { description: e.message })
     } finally {
@@ -634,6 +670,15 @@ function AnalyticsTab({ campaignId }) {
               </div>
             </>
           ) : null}
+          <div className="rounded-lg border bg-muted/30 px-4 py-2 text-right">
+            <p className="text-xs text-muted-foreground">QR scans</p>
+            <p className="text-lg font-bold tabular-nums">{qrScansCount}</p>
+            {qrScansByDevice ? (
+              <p className="text-[11px] text-muted-foreground">
+                {qrScansByDevice.mobile ?? 0} mobile · {qrScansByDevice.desktop ?? 0} desktop
+              </p>
+            ) : null}
+          </div>
           <div className="rounded-lg border bg-muted/30 px-4 py-2 text-right">
             <p className="text-xs text-muted-foreground">Views → signups</p>
             <p className="text-lg font-bold tabular-nums">

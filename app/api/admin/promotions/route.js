@@ -10,6 +10,7 @@ import {
 import { normalizeInstagramHandle } from "@/lib/promo-instagram";
 import { getSupabaseProjectLabel } from "@/lib/supabase-project-label";
 import { summarizePromoSignups } from "@/lib/promo-usage-stats";
+import { generateQrShortCode } from "@/lib/promo-qr";
 
 function parseBrand(value) {
   return value === PROMO_BRAND_STUDIO7 ? PROMO_BRAND_STUDIO7 : PROMO_BRAND_420;
@@ -115,6 +116,20 @@ export async function POST(request) {
       ? "Follow us on Instagram to unlock your ticket discount code."
       : brandConfig.defaultDescription;
 
+  let qr_short_code = null;
+  for (let i = 0; i < 10 && !qr_short_code; i++) {
+    const candidate = generateQrShortCode();
+    const { data: taken } = await supabase
+      .from("promo_campaigns")
+      .select("id")
+      .eq("qr_short_code", candidate)
+      .maybeSingle();
+    if (!taken) qr_short_code = candidate;
+  }
+  if (!qr_short_code) {
+    return NextResponse.json({ error: "Could not allocate QR short code" }, { status: 500 });
+  }
+
   const { data: campaign, error: insertErr } = await supabase
     .from("promo_campaigns")
     .insert({
@@ -129,6 +144,7 @@ export async function POST(request) {
       terms_text: body.terms_text || null,
       is_active: true,
       created_by: user.id,
+      qr_short_code,
     })
     .select()
     .single();

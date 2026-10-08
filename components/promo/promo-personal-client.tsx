@@ -99,7 +99,7 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
         <div className={promoCardClass}>
           <div className="border-b border-zinc-800 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
             {brand.id === PROMO_BRAND_STUDIO7 ? (
-              <Studio7Logo size={96} priority variant="promo" className="mx-auto" />
+              <Studio7Logo size={96} priority variant="promo" className="mx-auto mb-1" />
             ) : (
               <p className="text-lg font-bold tracking-tight text-white">{brand.label}</p>
             )}
