@@ -250,10 +250,10 @@ export async function promoSlugPOST(
     emailOk && smsOk
       ? brand.signupSuccessDefault
       : emailOk && !smsOk
-        ? "We emailed your code — check spam and Promotions if you don't see it. We couldn't text you; use your guest pass link below."
+        ? "We emailed your code — check spam and Promotions if you don't see it. We couldn't text you; save your code below."
         : !emailOk && smsOk
-          ? "We texted your code. Email didn't go through — save your code and guest pass link below."
-          : "Save your code and open your guest pass link below — we couldn't send email or text.";
+          ? "We texted your code. Email didn't go through — save your code below."
+          : "Save your code below — we couldn't send email or text.";
 
   return NextResponse.json({
     success: true,

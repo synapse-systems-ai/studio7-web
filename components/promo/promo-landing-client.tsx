@@ -195,7 +195,6 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
                 discountCode={success.discount_code}
                 expiresAt={success.expires_at}
                 validHours={success.valid_hours}
-                personalUrl={success.personal_url}
                 stores={successStores}
               />
             ) : (

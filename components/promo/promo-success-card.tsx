@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { CheckCircle2, Clock, Copy, ExternalLink, XCircle } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   formatPromoStatusLabel,
@@ -68,7 +65,6 @@ export function PromoSuccessCard({
   discountCode,
   expiresAt,
   validHours,
-  personalUrl,
   status,
   headline,
   showStatus = false,
@@ -77,13 +73,11 @@ export function PromoSuccessCard({
   discountCode?: string | null;
   expiresAt?: string | null;
   validHours?: number;
-  personalUrl?: string | null;
   stores?: unknown[];
   status?: PromoSignupStatus;
   headline?: string;
   showStatus?: boolean;
 }) {
-  const [copied, setCopied] = useState(false);
   const isUsed = status === "used";
   const isExpired = status === "expired";
   const isCancelled = status === "cancelled";
@@ -120,40 +114,6 @@ export function PromoSuccessCard({
           <p className="font-mono text-lg font-bold text-gray-900">{discountCode}</p>
         </div>
       )}
-      {personalUrl && !isInactive ? (
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <Link
-            href={personalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              buttonVariants({ size: "sm" }),
-              "gap-1.5 bg-zinc-950 text-white hover:bg-zinc-800",
-            )}
-          >
-            Open guest pass
-            <ExternalLink className="h-3.5 w-3.5" />
-          </Link>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="gap-1.5 border-green-300 bg-white text-green-900 hover:bg-green-50"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(personalUrl);
-                setCopied(true);
-                window.setTimeout(() => setCopied(false), 2000);
-              } catch {
-                // clipboard unavailable
-              }
-            }}
-          >
-            <Copy className="h-3.5 w-3.5" />
-            {copied ? "Link copied" : "Copy pass link"}
-          </Button>
-        </div>
-      ) : null}
       {!isInactive && <PromoCountdown expiresAt={expiresAt} validHours={validHours} />}
     </div>
   );

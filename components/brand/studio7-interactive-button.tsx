@@ -17,6 +17,10 @@ type Studio7InteractiveButtonProps = {
   variant?: "primary" | "ghost";
 };
 
+function isExternalHref(href: string) {
+  return /^https?:\/\//i.test(href);
+}
+
 export function Studio7InteractiveButton({
   href,
   type = "button",
@@ -27,10 +31,15 @@ export function Studio7InteractiveButton({
   variant = "primary",
 }: Studio7InteractiveButtonProps) {
   const isPrimary = variant === "primary";
+  const linkProps = href
+    ? isExternalHref(href)
+      ? { href, target: "_blank", rel: "noopener noreferrer" as const }
+      : { href }
+    : {};
   const inner = (
     <StarBorder
-      as={href ? Link : "button"}
-      {...(href ? { href } : { type, onClick, disabled })}
+      as={href ? (isExternalHref(href) ? "a" : Link) : "button"}
+      {...(href ? linkProps : { type, onClick, disabled })}
       color="#ffffff"
       speed="5s"
       thickness={1}

@@ -1,12 +1,19 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Studio7Logo } from "@/components/brand/studio7-logo";
+import { Studio7InteractiveButton } from "@/components/brand/studio7-interactive-button";
 import { PromoHeroBackground } from "@/components/promo/promo-hero-background";
 import { PromoSuccessCard } from "@/components/promo/promo-success-card";
+import { Badge } from "@/components/ui/badge";
 import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
-import { STUDIO7_SITE_LOGO } from "@/lib/studio7-site-assets";
 import type { PromoSignupStatus } from "@/lib/promo-signup";
+import { STUDIO7_INSTAGRAM_URL } from "@/lib/studio7-site-assets";
+import { cn } from "@/lib/utils";
+
+const promoCardClass =
+  "mx-auto my-auto w-full max-w-md overflow-hidden rounded-3xl border border-white/50 bg-white/95 shadow-[0_12px_48px_rgba(0,0,0,0.35)] ring-1 ring-black/5 backdrop-blur-xl sm:bg-white";
 
 function PromoShell({
   campaign,
@@ -18,14 +25,14 @@ function PromoShell({
   return (
     <div className="fixed inset-0 h-dvh w-full overflow-hidden text-black">
       <PromoHeroBackground campaign={campaign} />
-      <div className="relative z-10 h-full w-full overflow-y-auto">{children}</div>
+      <div className="relative z-10 flex h-full w-full overflow-y-auto">{children}</div>
     </div>
   );
 }
 
 export function PromoPersonalClient({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
-  const brand = getPromoBrand();
+  const brand = useMemo(() => getPromoBrand(), []);
   const [data, setData] = useState<{
     signup: {
       name?: string;
@@ -63,7 +70,7 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
   if (loading) {
     return (
       <PromoShell campaign={null}>
-        <div className="flex h-full items-center justify-center">
+        <div className="flex h-full w-full items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-white" />
         </div>
       </PromoShell>
@@ -73,10 +80,10 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
   if (error || !data) {
     return (
       <PromoShell campaign={null}>
-        <div className="flex h-full items-center justify-center p-3 sm:p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white/95 px-5 py-6 text-center shadow-2xl backdrop-blur-md sm:bg-white">
-            <p className="text-lg font-medium">Promo not found</p>
-            <p className="mt-2 text-sm text-gray-600">{error || "This link may be invalid or expired."}</p>
+        <div className="flex h-full w-full items-center justify-center p-3 sm:p-4">
+          <div className={cn(promoCardClass, "px-6 py-8 text-center")}>
+            <p className="text-lg font-semibold text-zinc-900">Pass not found</p>
+            <p className="mt-2 text-sm text-zinc-600">{error || "This link may be invalid or expired."}</p>
           </div>
         </div>
       </PromoShell>
@@ -84,42 +91,67 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
   }
 
   const { signup, campaign } = data;
+  const firstName = signup.name?.split(" ")[0] || "there";
+  const isOngoing = signup.status === "ongoing";
 
   return (
     <PromoShell campaign={campaign}>
       <div className="flex h-full w-full items-center justify-center p-3 sm:p-4">
-        <div className="mx-auto my-auto w-full max-w-md rounded-2xl bg-white/92 px-4 py-4 shadow-2xl backdrop-blur-md sm:space-y-5 sm:bg-white sm:px-5 sm:py-7">
-          <div className="mb-4 flex flex-col items-center gap-2 text-center">
+        <div className={promoCardClass}>
+          <div className="border-b border-zinc-100 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
             {brand.id === PROMO_BRAND_STUDIO7 ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={STUDIO7_SITE_LOGO}
-                alt="Studio 7"
-                className="h-11 w-auto max-w-[min(100%,200px)] object-contain"
-              />
+              <Studio7Logo size={80} priority className="mx-auto ring-zinc-200/80" />
             ) : (
-              <p className="text-xl font-bold tracking-tight text-gray-900">{brand.label}</p>
+              <p className="text-lg font-bold tracking-tight text-zinc-900">{brand.label}</p>
             )}
-            <h1 className="text-xl font-bold text-gray-900">{campaign?.headline || "Your promo"}</h1>
-            {campaign?.description && <p className="text-sm text-gray-600">{campaign.description}</p>}
+            {brand.id === PROMO_BRAND_STUDIO7 ? (
+              <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.35em] text-zinc-500">Guest pass</p>
+            ) : null}
+            <h1 className="mt-2 text-xl font-bold leading-snug tracking-tight text-zinc-950 sm:text-2xl">
+              {campaign?.headline || "Your Studio 7 promo"}
+            </h1>
+            {isOngoing && campaign?.discount_percent != null ? (
+              <Badge variant="secondary" className="mt-3 border-zinc-200 bg-zinc-100 text-zinc-800">
+                {campaign.discount_percent}% off in-store
+              </Badge>
+            ) : null}
+            {campaign?.description ? (
+              <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-zinc-600">{campaign.description}</p>
+            ) : null}
           </div>
 
-          <PromoSuccessCard
-            headline={
-              signup.status === "ongoing"
-                ? `Hi ${signup.name?.split(" ")[0] || "there"}, here's your ${campaign?.discount_percent || ""}% off code.`
-                : undefined
-            }
-            discountCode={signup.discount_code}
-            expiresAt={signup.expires_at}
-            validHours={campaign?.code_valid_hours}
-            status={signup.status}
-            showStatus
-          />
+          <div className="px-4 py-5 sm:px-6 sm:py-6">
+            <PromoSuccessCard
+              message={
+                isOngoing
+                  ? `Hi ${firstName}, your code and timer are below. Show this pass at the door.`
+                  : undefined
+              }
+              discountCode={signup.discount_code}
+              expiresAt={signup.expires_at}
+              validHours={campaign?.code_valid_hours}
+              status={signup.status}
+              showStatus
+            />
 
-          {campaign?.terms_text && (
-            <p className="mt-4 text-center text-[11px] text-gray-500">{campaign.terms_text}</p>
-          )}
+            {brand.id === PROMO_BRAND_STUDIO7 ? (
+              <div className="mt-5 space-y-3 border-t border-zinc-100 pt-5">
+                <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                  Stay in the loop
+                </p>
+                <Studio7InteractiveButton href={STUDIO7_INSTAGRAM_URL} variant="ghost">
+                  <span className="text-base leading-none" aria-hidden>
+                    @
+                  </span>
+                  Follow @studio7.rsa
+                </Studio7InteractiveButton>
+              </div>
+            ) : null}
+
+            {campaign?.terms_text ? (
+              <p className="mt-4 text-center text-[11px] leading-relaxed text-zinc-500">{campaign.terms_text}</p>
+            ) : null}
+          </div>
         </div>
       </div>
     </PromoShell>

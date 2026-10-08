@@ -11,3 +11,5 @@ export const STUDIO7_SITE_HERO_PHOTOS = [
 ] as const;
 
 export const STUDIO7_SITE_LOGO = "/studio7/site/logo.png";
+
+export const STUDIO7_INSTAGRAM_URL = "https://www.instagram.com/studio7.rsa/";

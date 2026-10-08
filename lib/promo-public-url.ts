@@ -23,12 +23,17 @@ export function getPromoPublicBaseUrlServer() {
     return fromEnv;
   }
 
-  if (process.env.VERCEL_URL) {
+  // Never prefer preview deployment URLs in email/SMS (they often require Vercel login).
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return stripTrailingSlash(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  }
+
+  if (process.env.VERCEL_URL && process.env.VERCEL_ENV === "production") {
     return stripTrailingSlash(`https://${process.env.VERCEL_URL}`);
   }
 
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return stripTrailingSlash(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  if (process.env.VERCEL_URL && process.env.VERCEL_ENV !== "preview") {
+    return stripTrailingSlash(`https://${process.env.VERCEL_URL}`);
   }
 
   if (fromEnv) {
