@@ -155,7 +155,7 @@ function ContentTab({ campaign, onSaved }) {
         ends_at: form.ends_at || null,
         instagram_username: form.instagram_username,
         ticket_url: form.ticket_url.trim() || null,
-        promo_code: form.promo_code.trim().toUpperCase() || null,
+        promo_code: form.promo_code.trim() || null,
         qr_destination_url: form.qr_destination_url.trim() || null,
       }
       const r = await fetch(`${adminApi}/${campaign.id}`, {
@@ -242,9 +242,9 @@ function ContentTab({ campaign, onSaved }) {
               <Label>Promo code {isInstagram ? '(required)' : ''}</Label>
               <Input
                 value={form.promo_code}
-                onChange={(e) => setForm((f) => ({ ...f, promo_code: e.target.value.toUpperCase() }))}
-                placeholder="STUDIO10"
-                className="font-mono uppercase"
+                onChange={(e) => setForm((f) => ({ ...f, promo_code: e.target.value }))}
+                placeholder="STUDIO730!"
+                className="font-mono"
               />
               <p className="text-xs text-muted-foreground">Same code for everyone on this campaign (Howler checkout).</p>
             </div>

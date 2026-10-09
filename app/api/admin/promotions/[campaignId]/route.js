@@ -4,6 +4,7 @@ import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
 import { PROMOTIONS_ACCESS_ROLES } from "@/lib/promotions-auth";
 import { PROMO_CODE_VALID_HOURS_MAX } from "@/lib/promo-signup";
 import { ensureCampaignQrShortCode } from "@/lib/promo-qr-campaign";
+import { PROMO_CODE_RE, PROMO_CODE_VALIDATION_HINT } from "@/lib/promo-campaign-code";
 
 const EDITABLE_FIELDS = [
   "name",
@@ -131,12 +132,9 @@ export async function PATCH(request, { params }) {
     if (patch.promo_code === null || patch.promo_code === "") {
       patch.promo_code = null;
     } else {
-      const code = String(patch.promo_code).trim().toUpperCase();
-      if (!/^[A-Z0-9_-]{3,40}$/.test(code)) {
-        return NextResponse.json(
-          { error: "promo_code must be 3–40 characters (letters, numbers, hyphen, underscore)" },
-          { status: 400 },
-        );
+      const code = String(patch.promo_code).trim();
+      if (!PROMO_CODE_RE.test(code)) {
+        return NextResponse.json({ error: PROMO_CODE_VALIDATION_HINT }, { status: 400 });
       }
       patch.promo_code = code;
     }

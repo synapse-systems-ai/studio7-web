@@ -1,6 +1,10 @@
 import { isInstagramPromoCampaign } from "@/lib/promo-campaign-format";
 
-const PROMO_CODE_RE = /^[A-Za-z0-9_-]{3,40}$/;
+/** Letters, numbers, and common checkout symbols (e.g. Howler codes like STUDIO730!). */
+export const PROMO_CODE_RE = /^[A-Za-z0-9!@#$%&*._-]{3,40}$/;
+
+export const PROMO_CODE_VALIDATION_HINT =
+  "Promo code must be 3–40 characters (letters, numbers, and ! @ # $ % & * . _ -).";
 
 /** Stored on signups when reward is a pre-discounted ticket URL (not shown to guests). */
 export const INSTAGRAM_TICKET_SIGNUP_CODE = "TICKET-LINK";
@@ -8,7 +12,7 @@ export const INSTAGRAM_TICKET_SIGNUP_CODE = "TICKET-LINK";
 export function normalizeCampaignPromoCode(raw: unknown): string | null {
   const code = String(raw ?? "").trim();
   if (!code || !PROMO_CODE_RE.test(code)) return null;
-  return code.toUpperCase();
+  return code;
 }
 
 export function normalizeCampaignTicketUrl(raw: unknown): string | null {
