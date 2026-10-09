@@ -245,7 +245,7 @@ export function PromoInstagramSignupForm({
       ) : null}
 
       <Button type="submit" className={cn(canSubmit ? promoSubmitClass : promoSubmitLockedClass)} disabled={!canSubmit}>
-        {submitting ? "One moment…" : canSubmit ? "Go to my code" : "Verify follow to unlock"}
+        {submitting ? "One moment…" : canSubmit ? "Get discounted tickets" : "Verify follow to unlock"}
       </Button>
 
       {termsText ? (

@@ -111,6 +111,7 @@ function ContentTab({ campaign, onSaved }) {
 
   const publicUrl = getPromoLandingUrl(campaign.slug)
   const qrScanUrl = campaign.qr_short_code ? getPromoDynamicQrUrl(campaign.qr_short_code) : ''
+  const isInstagram = isInstagramPromoCampaign(campaign)
   const previewImage = form.image_url || getPromoCampaignPreviewImage(campaign)
   const { download: downloadQrPng } = useDynamicQrDownload()
 
@@ -228,23 +229,29 @@ function ContentTab({ campaign, onSaved }) {
           </div>
           <div className="rounded-lg border p-4 space-y-4">
             <div>
-              <p className="text-sm font-medium">Tickets &amp; promo code</p>
+              <p className="text-sm font-medium">
+                {isInstagram ? 'Discounted tickets' : 'Tickets & promo code'}
+              </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Guests verify on Instagram, copy this code, then open Howler to redeem.
+                {isInstagram
+                  ? 'After Instagram verification, guests open this Howler link — discount is already applied; no manual code.'
+                  : 'Guest list signups get a promo code by email; optional Howler link on the success screen.'}
               </p>
             </div>
+            {!isInstagram ? (
+              <div className="space-y-2">
+                <Label>Promo code</Label>
+                <Input
+                  value={form.promo_code}
+                  onChange={(e) => setForm((f) => ({ ...f, promo_code: e.target.value.toUpperCase() }))}
+                  placeholder="STUDIO10"
+                  className="font-mono uppercase"
+                />
+                <p className="text-xs text-muted-foreground">Same code for everyone on this campaign.</p>
+              </div>
+            ) : null}
             <div className="space-y-2">
-              <Label>Promo code</Label>
-              <Input
-                value={form.promo_code}
-                onChange={(e) => setForm((f) => ({ ...f, promo_code: e.target.value.toUpperCase() }))}
-                placeholder="STUDIO10"
-                className="font-mono uppercase"
-              />
-              <p className="text-xs text-muted-foreground">Same code for everyone on this campaign (Howler checkout).</p>
-            </div>
-            <div className="space-y-2">
-              <Label>Howler ticket URL</Label>
+              <Label>{isInstagram ? 'Discounted ticket URL (required)' : 'Howler ticket URL'}</Label>
               <Input
                 type="url"
                 value={form.ticket_url}

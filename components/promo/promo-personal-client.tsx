@@ -6,6 +6,7 @@ import { Studio7Logo } from "@/components/brand/studio7-logo";
 import { Studio7InteractiveButton } from "@/components/brand/studio7-interactive-button";
 import { PromoHeroBackground } from "@/components/promo/promo-hero-background";
 import { PromoSuccessCard } from "@/components/promo/promo-success-card";
+import { isHiddenTicketLinkSignupCode } from "@/lib/promo-campaign-code";
 import { Badge } from "@/components/ui/badge";
 import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
 import type { PromoSignupStatus } from "@/lib/promo-signup";
@@ -132,6 +133,7 @@ export function PromoPersonalClient({ params }: { params: Promise<{ token: strin
               status={signup.status}
               showStatus
               ticketUrl={campaign?.ticket_url}
+              ticketLinkOnly={isHiddenTicketLinkSignupCode(signup.discount_code)}
             />
 
             {brand.id === PROMO_BRAND_STUDIO7 ? (

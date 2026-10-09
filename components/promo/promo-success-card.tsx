@@ -11,6 +11,7 @@ import {
   formatPromoValidDuration,
   type PromoSignupStatus,
 } from "@/lib/promo-signup";
+import { isHiddenTicketLinkSignupCode } from "@/lib/promo-campaign-code";
 
 function PromoCountdown({
   expiresAt,
@@ -58,7 +59,11 @@ function PromoCountdown({
       <div className="flex items-center gap-2 text-amber-200">
         <Clock className="h-4 w-4 shrink-0" />
         <span className="text-xs font-semibold uppercase tracking-wide">
-          {remaining.expired ? "Code expired" : `Valid for ${formatPromoValidDuration(validHours ?? 24)}`}
+          {remaining.expired
+            ? ticketCheckout
+              ? "Link expired"
+              : "Code expired"
+            : `Valid for ${formatPromoValidDuration(validHours ?? 24)}`}
         </span>
       </div>
       {!remaining.expired && (
@@ -68,7 +73,7 @@ function PromoCountdown({
       )}
       <p className="mt-1 text-[11px] text-amber-300/90">
         {ticketCheckout
-          ? "Paste your code at checkout on Howler before the timer runs out."
+          ? "Complete checkout on Howler before the timer runs out."
           : "Use your code in-store before the timer runs out."}
       </p>
     </div>
@@ -126,6 +131,7 @@ export function PromoSuccessCard({
   headline,
   showStatus = false,
   ticketUrl,
+  ticketLinkOnly,
 }: {
   message?: string | null;
   discountCode?: string | null;
@@ -136,12 +142,15 @@ export function PromoSuccessCard({
   headline?: string;
   showStatus?: boolean;
   ticketUrl?: string | null;
+  ticketLinkOnly?: boolean;
 }) {
   const isUsed = status === "used";
   const isExpired = status === "expired";
   const isCancelled = status === "cancelled";
   const isInactive = isUsed || isExpired || isCancelled;
   const checkoutUrl = ticketUrl?.trim() || null;
+  const showPromoCode =
+    Boolean(discountCode) && !ticketLinkOnly && !isHiddenTicketLinkSignupCode(discountCode);
 
   return (
     <div className="mt-3 rounded-xl border border-emerald-800/60 bg-emerald-950/35 p-4 text-center sm:mt-0 sm:p-6">
@@ -168,8 +177,8 @@ export function PromoSuccessCard({
           </Badge>
         </div>
       )}
-      {discountCode && !isInactive ? <PromoCodeCopy code={discountCode} /> : null}
-      {discountCode && isInactive ? (
+      {showPromoCode && !isInactive ? <PromoCodeCopy code={discountCode!} /> : null}
+      {showPromoCode && isInactive ? (
         <div className="mt-3 rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2">
           <p className="text-[10px] uppercase tracking-wide text-zinc-500">Code</p>
           <p className="font-mono text-lg font-bold text-white">{discountCode}</p>
@@ -178,7 +187,7 @@ export function PromoSuccessCard({
       {!isInactive && checkoutUrl ? (
         <Button asChild className={cn(promoSubmitClass, "mt-4 w-full")}>
           <a href={checkoutUrl} target="_blank" rel="noopener noreferrer">
-            Redeem code
+            {ticketLinkOnly || !showPromoCode ? "Get discounted tickets" : "Redeem code"}
             <ExternalLink className="ml-2 h-4 w-4" />
           </a>
         </Button>

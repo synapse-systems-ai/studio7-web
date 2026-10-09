@@ -18,7 +18,7 @@ export const PROMO_CAMPAIGN_FORMAT_OPTIONS: {
   {
     value: PROMO_CAMPAIGN_FORMAT_INSTAGRAM,
     label: "Instagram",
-    description: "Instagram handle — follow account to unlock discount code on screen.",
+    description: "Instagram handle — follow account to unlock a discounted ticket link.",
   },
 ];
 

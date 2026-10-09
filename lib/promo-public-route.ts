@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getServiceRoleSupabase } from "@/lib/supabase-service-lazy";
-import { campaignPromoCodeOrError } from "@/lib/promo-campaign-code";
+import { resolveCampaignSignupReward } from "@/lib/promo-campaign-code";
 import { portalPhoneLookupStrings } from "@/lib/portal-order-access";
 import { sendPromoSignupNotifications } from "@/lib/promo-notifications";
 import { getPromoPersonalUrl } from "@/lib/promo-public-url";
@@ -122,16 +122,6 @@ async function insertPromoSignupWithCode(
   return { error: insertErr.message };
 }
 
-function resolveSignupDiscountCode(campaign: CampaignRow):
-  | { ok: true; code: string }
-  | { ok: false; error: string; status: number } {
-  const configured = campaignPromoCodeOrError(campaign);
-  if (!configured.ok) {
-    return { ok: false, error: configured.error, status: 503 };
-  }
-  return configured;
-}
-
 const brand = getPromoBrand();
 const brandId = PROMO_BRAND_STUDIO7;
 
@@ -197,11 +187,12 @@ export async function promoSlugPOST(
   const accessToken = randomUUID();
   const campaignRow = campaign as CampaignRow;
 
-  const discountResolved = resolveSignupDiscountCode(campaignRow);
-  if (!discountResolved.ok) {
-    return NextResponse.json({ error: discountResolved.error }, { status: discountResolved.status });
+  const rewardResolved = resolveCampaignSignupReward(campaignRow);
+  if (!rewardResolved.ok) {
+    return NextResponse.json({ error: rewardResolved.error }, { status: rewardResolved.status });
   }
-  const campaignDiscountCode = discountResolved.code;
+  const campaignDiscountCode = rewardResolved.discountCode;
+  const ticketLinkOnly = rewardResolved.ticketLinkOnly;
 
   if (isInstagramPromoCampaign(campaign)) {
     const handle = normalizeInstagramHandle(String(body.instagram_handle || body.instagram || ""));
@@ -218,7 +209,7 @@ export async function promoSlugPOST(
     const alreadyIg = await findExistingInstagramSignup(supabase, { campaignId: campaign.id, handle });
     if (alreadyIg) {
       return NextResponse.json(
-        { error: "This Instagram handle has already claimed a code for this campaign." },
+        { error: "This Instagram handle has already unlocked this promotion." },
         { status: 409 },
       );
     }
@@ -243,7 +234,7 @@ export async function promoSlugPOST(
     if ("error" in inserted) {
       if (inserted.error === "duplicate") {
         return NextResponse.json(
-          { error: "This Instagram handle has already claimed a code for this campaign." },
+          { error: "This Instagram handle has already unlocked this promotion." },
           { status: 409 },
         );
       }
@@ -255,12 +246,15 @@ export async function promoSlugPOST(
 
     return NextResponse.json({
       success: true,
-      message: `Thanks @${handle}! Copy your promo code below, then tap Redeem code to get tickets on Howler.`,
-      discount_code: discountCode,
+      message: ticketLinkOnly
+        ? `Thanks @${handle}! Your discounted ticket link is ready — tap below to open Howler.`
+        : `Thanks @${handle}! Copy your promo code below, then tap Redeem code to get tickets on Howler.`,
+      discount_code: ticketLinkOnly ? null : discountCode,
+      ticket_link_only: ticketLinkOnly,
       expires_at: expiresAt,
       valid_hours: validHours,
       personal_url: personalUrl,
-      ticket_url: publicTicketUrl(campaignRow),
+      ticket_url: rewardResolved.ticketUrl ?? publicTicketUrl(campaignRow),
       email_sent: false,
       stores: [],
     });
