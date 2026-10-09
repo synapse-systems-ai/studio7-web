@@ -9,16 +9,22 @@ export type PromoHero =
   | { type: "image"; url: string }
   | { type: "gradient"; url: null };
 
+/** Full-screen background: campaign video only; photos use the rotating gallery. */
 export function getPromoCampaignHero(campaign: { image_url?: string | null } | null): PromoHero {
   const url = String(campaign?.image_url || "").trim();
-  if (url) {
-    return { url, type: isPromoVideoUrl(url) ? "video" : "image" };
+  if (url && isPromoVideoUrl(url)) {
+    return { url, type: "video" };
   }
   return { type: "gradient", url: null };
 }
 
-export function getPromoCampaignPreviewImage(campaign: { image_url?: string | null } | null) {
+/** Event / promo artwork on the signup card (JPG, PNG, WebP, GIF). */
+export function getPromoCampaignCardArt(campaign: { image_url?: string | null } | null): string | null {
   const url = String(campaign?.image_url || "").trim();
   if (url && !isPromoVideoUrl(url)) return url;
   return null;
+}
+
+export function getPromoCampaignPreviewImage(campaign: { image_url?: string | null } | null) {
+  return getPromoCampaignCardArt(campaign);
 }

@@ -6,6 +6,7 @@ import { Studio7Logo } from "@/components/brand/studio7-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PromoCampaignArt } from "@/components/promo/promo-campaign-art";
 import { PromoHeroBackground } from "@/components/promo/promo-hero-background";
 import { PromoSuccessCard } from "@/components/promo/promo-success-card";
 import { PromoInstagramSignupForm } from "@/components/promo/promo-instagram-signup-form";
@@ -190,6 +191,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
     <PromoShell campaign={campaign}>
       <div className="relative z-10 flex h-full w-full items-center justify-center overflow-y-auto p-3 sm:p-4">
         <div className={promoCardClass}>
+          <PromoCampaignArt campaign={campaign} className="mx-4 mt-4 sm:mx-5 sm:mt-5" />
           <div className="border-b border-zinc-800 px-5 pb-5 pt-6 text-center sm:px-7 sm:pt-8">
             {brand.id === PROMO_BRAND_STUDIO7 ? (
               <Studio7Logo size={96} priority variant="promo" className="mx-auto mb-1" />

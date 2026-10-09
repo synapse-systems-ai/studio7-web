@@ -1,8 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import { use, useCallback, useEffect, useState } from 'react'
 import { DynamicQrCode, useDynamicQrDownload } from '@/components/qr/dynamic-qr-code'
 import { getPromoCampaignPreviewImage } from '@/lib/promo-brand-image'
+import { CampaignLandingImagePreview } from '@/components/admin/campaign-landing-image-preview'
 import { formatPromoValidDuration } from '@/lib/promo-signup'
 import { AdminLayout } from '@/components/admin/admin-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -202,7 +204,7 @@ function ContentTab({ campaign, onSaved }) {
                 placeholder="studio7.rsa"
               />
               <p className="text-xs text-muted-foreground">
-                Guests must follow this account before they can unlock their {form.discount_percent}% code.
+                Guests must follow this account before they can unlock their {form.discount_percent}% ticket discount.
               </p>
             </div>
           ) : null}
@@ -261,10 +263,13 @@ function ContentTab({ campaign, onSaved }) {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Landing page image</Label>
-            <div className="relative w-full h-40 rounded-lg overflow-hidden border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewImage} alt="" className="h-full w-full object-cover" />
+            <Label>Promo image (on signup card)</Label>
+            <div className="relative h-40 w-full overflow-hidden rounded-lg border bg-muted">
+              <CampaignLandingImagePreview
+                previewImage={previewImage}
+                brandId={brand.id}
+                galleryHref={brand.id === 'studio7' ? `${brand.adminBasePath}/hero-gallery` : null}
+              />
             </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" size="sm" disabled={uploading} asChild>
@@ -301,10 +306,16 @@ function ContentTab({ campaign, onSaved }) {
               ) : null}
             </div>
             <p className="text-xs text-muted-foreground">
-              JPG, PNG, WebP or GIF - max 5MB. Shown full-screen behind the signup form.{' '}
-              {brand.id === 'studio7'
-                ? 'Leave empty for the rotating background gallery (edit under Background gallery).'
-                : 'Leave empty for the default brand video.'}
+              JPG, PNG, WebP or GIF — max 5MB. Shown on the promo card (event flyer / artwork). The fading photo
+              background is separate —{' '}
+              {brand.id === 'studio7' ? (
+                <Link href={`${brand.adminBasePath}/hero-gallery`} className="underline underline-offset-2">
+                  edit under Background gallery
+                </Link>
+              ) : (
+                'leave empty for the default brand video background.'
+              )}
+              .
             </p>
           </div>
 
