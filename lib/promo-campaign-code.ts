@@ -55,6 +55,11 @@ export function resolveCampaignSignupReward(campaign: {
 }):
   | { ok: true; discountCode: string; ticketUrl: string | null; ticketLinkOnly: boolean }
   | { ok: false; error: string; status: number } {
+  const configured = campaignPromoCodeOrError(campaign);
+  if (!configured.ok) {
+    return { ok: false, error: configured.error, status: 503 };
+  }
+
   if (isInstagramPromoCampaign(campaign)) {
     const ticket = campaignTicketUrlOrError(campaign);
     if (!ticket.ok) {
@@ -62,16 +67,12 @@ export function resolveCampaignSignupReward(campaign: {
     }
     return {
       ok: true,
-      discountCode: INSTAGRAM_TICKET_SIGNUP_CODE,
+      discountCode: configured.code,
       ticketUrl: ticket.url,
-      ticketLinkOnly: true,
+      ticketLinkOnly: false,
     };
   }
 
-  const configured = campaignPromoCodeOrError(campaign);
-  if (!configured.ok) {
-    return { ok: false, error: configured.error, status: 503 };
-  }
   return {
     ok: true,
     discountCode: configured.code,

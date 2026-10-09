@@ -113,7 +113,7 @@ export async function POST(request) {
       : brandConfig.defaultHeadline;
   const defaultDescription =
     campaignFormat === PROMO_CAMPAIGN_FORMAT_INSTAGRAM
-      ? "Follow us on Instagram to unlock your discounted ticket link."
+      ? "Follow us on Instagram to unlock your ticket discount code."
       : brandConfig.defaultDescription;
 
   let qr_short_code = null;

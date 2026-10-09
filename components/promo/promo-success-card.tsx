@@ -73,7 +73,7 @@ function PromoCountdown({
       )}
       <p className="mt-1 text-[11px] text-amber-300/90">
         {ticketCheckout
-          ? "Complete checkout on Howler before the timer runs out."
+          ? "Paste your code at checkout on Howler before the timer runs out."
           : "Use your code in-store before the timer runs out."}
       </p>
     </div>

@@ -225,7 +225,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
                 validHours={success.valid_hours}
                 stores={successStores}
                 ticketUrl={success.ticket_url ?? campaign?.ticket_url}
-                ticketLinkOnly={Boolean(success.ticket_link_only ?? isInstagram)}
+                ticketLinkOnly={Boolean(success.ticket_link_only)}
               />
             ) : isInstagram ? (
               <PromoInstagramSignupForm

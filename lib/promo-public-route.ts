@@ -192,7 +192,6 @@ export async function promoSlugPOST(
     return NextResponse.json({ error: rewardResolved.error }, { status: rewardResolved.status });
   }
   const campaignDiscountCode = rewardResolved.discountCode;
-  const ticketLinkOnly = rewardResolved.ticketLinkOnly;
 
   if (isInstagramPromoCampaign(campaign)) {
     const handle = normalizeInstagramHandle(String(body.instagram_handle || body.instagram || ""));
@@ -246,11 +245,9 @@ export async function promoSlugPOST(
 
     return NextResponse.json({
       success: true,
-      message: ticketLinkOnly
-        ? `Thanks @${handle}! Your discounted ticket link is ready — tap below to open Howler.`
-        : `Thanks @${handle}! Copy your promo code below, then tap Redeem code to get tickets on Howler.`,
-      discount_code: ticketLinkOnly ? null : discountCode,
-      ticket_link_only: ticketLinkOnly,
+      message: `Thanks @${handle}! Copy your promo code below, then tap Redeem code to get tickets on Howler.`,
+      discount_code: discountCode,
+      ticket_link_only: false,
       expires_at: expiresAt,
       valid_hours: validHours,
       personal_url: personalUrl,

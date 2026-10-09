@@ -231,29 +231,25 @@ function ContentTab({ campaign, onSaved }) {
           </div>
           <div className="rounded-lg border p-4 space-y-4">
             <div>
-              <p className="text-sm font-medium">
-                {isInstagram ? 'Discounted tickets' : 'Tickets & promo code'}
-              </p>
+              <p className="text-sm font-medium">Tickets &amp; promo code</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {isInstagram
-                  ? 'After Instagram verification, guests open this Howler link — discount is already applied. There is no separate promo code field for Instagram campaigns.'
+                  ? 'Guests verify on Instagram, copy this promo code, then open Howler to redeem.'
                   : 'Guest list signups get a promo code by email; optional Howler link on the success screen.'}
               </p>
             </div>
-            {!isInstagram ? (
-              <div className="space-y-2">
-                <Label>Promo code</Label>
-                <Input
-                  value={form.promo_code}
-                  onChange={(e) => setForm((f) => ({ ...f, promo_code: e.target.value.toUpperCase() }))}
-                  placeholder="STUDIO10"
-                  className="font-mono uppercase"
-                />
-                <p className="text-xs text-muted-foreground">Same code for everyone on this campaign.</p>
-              </div>
-            ) : null}
             <div className="space-y-2">
-              <Label>{isInstagram ? 'Discounted ticket URL (required)' : 'Howler ticket URL'}</Label>
+              <Label>Promo code {isInstagram ? '(required)' : ''}</Label>
+              <Input
+                value={form.promo_code}
+                onChange={(e) => setForm((f) => ({ ...f, promo_code: e.target.value.toUpperCase() }))}
+                placeholder="STUDIO10"
+                className="font-mono uppercase"
+              />
+              <p className="text-xs text-muted-foreground">Same code for everyone on this campaign (Howler checkout).</p>
+            </div>
+            <div className="space-y-2">
+              <Label>{isInstagram ? 'Howler ticket URL (required)' : 'Howler ticket URL'}</Label>
               <Input
                 type="url"
                 value={form.ticket_url}
@@ -674,11 +670,6 @@ function AnalyticsTab({ campaignId, campaignFormat }) {
             <div className="rounded-lg border bg-muted/30 px-4 py-2">
               <p className="text-xs text-muted-foreground">Promo code</p>
               <p className="font-mono text-lg font-bold">{promoCode}</p>
-            </div>
-          ) : isInstagramPromoCampaign({ campaign_format: campaignFormat }) ? (
-            <div className="rounded-lg border bg-muted/30 px-4 py-2">
-              <p className="text-xs text-muted-foreground">Checkout</p>
-              <p className="text-sm font-medium">Discounted ticket link (no code)</p>
             </div>
           ) : null}
           {promoStats ? (
