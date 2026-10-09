@@ -236,7 +236,7 @@ function ContentTab({ campaign, onSaved }) {
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {isInstagram
-                  ? 'After Instagram verification, guests open this Howler link — discount is already applied; no manual code.'
+                  ? 'After Instagram verification, guests open this Howler link — discount is already applied. There is no separate promo code field for Instagram campaigns.'
                   : 'Guest list signups get a promo code by email; optional Howler link on the success screen.'}
               </p>
             </div>
@@ -488,7 +488,7 @@ function ContentTab({ campaign, onSaved }) {
   )
 }
 
-function AnalyticsTab({ campaignId }) {
+function AnalyticsTab({ campaignId, campaignFormat }) {
   const brand = usePromoBrand()
   const adminApi = brand.adminApiBase
   const { user } = useAuth()
@@ -674,6 +674,11 @@ function AnalyticsTab({ campaignId }) {
             <div className="rounded-lg border bg-muted/30 px-4 py-2">
               <p className="text-xs text-muted-foreground">Promo code</p>
               <p className="font-mono text-lg font-bold">{promoCode}</p>
+            </div>
+          ) : isInstagramPromoCampaign({ campaign_format: campaignFormat }) ? (
+            <div className="rounded-lg border bg-muted/30 px-4 py-2">
+              <p className="text-xs text-muted-foreground">Checkout</p>
+              <p className="text-sm font-medium">Discounted ticket link (no code)</p>
             </div>
           ) : null}
           {promoStats ? (
@@ -930,7 +935,7 @@ export default function PromotionCampaignPage({ params }) {
               <ContentTab campaign={campaign} onSaved={setCampaign} />
             </TabsContent>
             <TabsContent value="analytics" className="mt-4">
-              <AnalyticsTab campaignId={campaignId} />
+              <AnalyticsTab campaignId={campaignId} campaignFormat={campaign.campaign_format} />
             </TabsContent>
           </Tabs>
         )}
