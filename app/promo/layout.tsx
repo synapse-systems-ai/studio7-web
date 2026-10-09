@@ -12,7 +12,7 @@ export const instant = false;
 /** Standalone promo landing - no site chrome. */
 export default function PromoLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="light fixed inset-0 h-dvh overflow-hidden overscroll-none bg-black text-black antialiased">
+    <div className="fixed inset-0 h-dvh overflow-hidden overscroll-none bg-black text-white antialiased">
       {children}
     </div>
   );

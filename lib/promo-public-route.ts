@@ -7,7 +7,7 @@ import { sendPromoSignupNotifications } from "@/lib/promo-notifications";
 import { getPromoPersonalUrl } from "@/lib/promo-public-url";
 import { promoExpiresAtFromSignup, resolvePromoCodeValidHours } from "@/lib/promo-signup";
 import { getPromoBrand, PROMO_BRAND_STUDIO7 } from "@/lib/promo-brands";
-import { campaignIsLive } from "@/lib/promo-campaign-live";
+import { campaignLiveBlockReason } from "@/lib/promo-campaign-live";
 import { isInstagramPromoCampaign } from "@/lib/promo-campaign-format";
 import {
   isValidInstagramHandle,
@@ -140,8 +140,12 @@ export async function promoSlugGET(
     .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!campaign || !campaignIsLive(campaign)) {
-    return NextResponse.json({ error: "This promotion is not available." }, { status: 404 });
+  const liveBlock = campaignLiveBlockReason(campaign);
+  if (liveBlock) {
+    return NextResponse.json(
+      { error: "This promotion is not available.", detail: liveBlock },
+      { status: 404 },
+    );
   }
 
   const deviceId = new URL(request.url).searchParams.get("device");
@@ -178,7 +182,14 @@ export async function promoSlugPOST(
     .maybeSingle();
 
   if (campErr) return NextResponse.json({ error: campErr.message }, { status: 500 });
-  if (!campaign || !campaignIsLive(campaign)) {
+  const postLiveBlock = campaignLiveBlockReason(campaign);
+  if (postLiveBlock) {
+    return NextResponse.json(
+      { error: "This promotion is not available.", detail: postLiveBlock },
+      { status: 404 },
+    );
+  }
+  if (!campaign) {
     return NextResponse.json({ error: "This promotion is not available." }, { status: 404 });
   }
 
@@ -245,7 +256,7 @@ export async function promoSlugPOST(
 
     return NextResponse.json({
       success: true,
-      message: `Thanks @${handle}! Copy your promo code below, then tap Redeem code to get tickets on Howler.`,
+      message: `Thanks @${handle}! Copy your promo code below, then tap Go to buy ticket.`,
       discount_code: discountCode,
       ticket_link_only: false,
       expires_at: expiresAt,

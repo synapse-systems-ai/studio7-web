@@ -187,7 +187,7 @@ export function PromoSuccessCard({
       {!isInactive && checkoutUrl ? (
         <Button asChild className={cn(promoSubmitClass, "mt-4 w-full")}>
           <a href={checkoutUrl} target="_blank" rel="noopener noreferrer">
-            {ticketLinkOnly || !showPromoCode ? "Get discounted tickets" : "Redeem code"}
+            Go to buy ticket
             <ExternalLink className="ml-2 h-4 w-4" />
           </a>
         </Button>

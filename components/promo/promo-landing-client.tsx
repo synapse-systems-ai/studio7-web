@@ -88,7 +88,7 @@ export function PromoLandingClient({ params }: { params: Promise<{ slug: string 
       .then((r) => r.json())
       .then((data) => {
         if (data.error) {
-          setError(data.error);
+          setError(data.detail ? `${data.error} ${data.detail}` : data.error);
           return;
         }
         setCampaign(data.campaign);
