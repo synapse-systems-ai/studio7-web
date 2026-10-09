@@ -140,6 +140,15 @@ export async function promoSlugGET(
     .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!campaign) {
+    return NextResponse.json(
+      {
+        error: "This promotion is not available.",
+        detail: "No Studio 7 campaign exists for this link.",
+      },
+      { status: 404 },
+    );
+  }
   const liveBlock = campaignLiveBlockReason(campaign);
   if (liveBlock) {
     return NextResponse.json(
@@ -182,15 +191,18 @@ export async function promoSlugPOST(
     .maybeSingle();
 
   if (campErr) return NextResponse.json({ error: campErr.message }, { status: 500 });
+  if (!campaign) {
+    return NextResponse.json(
+      { error: "This promotion is not available.", detail: "No Studio 7 campaign exists for this link." },
+      { status: 404 },
+    );
+  }
   const postLiveBlock = campaignLiveBlockReason(campaign);
   if (postLiveBlock) {
     return NextResponse.json(
       { error: "This promotion is not available.", detail: postLiveBlock },
       { status: 404 },
     );
-  }
-  if (!campaign) {
-    return NextResponse.json({ error: "This promotion is not available." }, { status: 404 });
   }
 
   const validHours = resolvePromoCodeValidHours(campaign);
